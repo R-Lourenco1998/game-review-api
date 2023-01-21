@@ -5,24 +5,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
 import java.io.Serializable;
-import java.util.List;
+import java.time.LocalDate;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "tb_user")
-public class User implements Serializable {
+public class Game implements Serializable{
 
     private static final long serialVersionUID = 1L;
 
@@ -32,11 +27,15 @@ public class User implements Serializable {
 
     private String name;
 
-    private String email;
+    private String description;
 
-    private String password;
+    private String genre;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "tb_user_game")
-    private List<Game> games;
+    private String platform;
+
+    private LocalDate releaseDate;
+
+    private String developer;
+
+    private String publisher;
 }
