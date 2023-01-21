@@ -2,6 +2,7 @@ package com.gamereview.api.rest.controller;
 
 import com.gamereview.api.entities.User;
 import com.gamereview.api.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,11 +29,13 @@ public class UserController {
     }
 
     @GetMapping
+    @Operation(tags = {"User"}, summary = "Find all users", description = "Find all users")
     public List<User> findAll() {
         return userService.findAllUser();
     }
 
     @GetMapping("/{id}")
+    @Operation(tags = {"User"}, summary = "Find user by id", description = "Find user by id")
     public ResponseEntity<User> findById(@PathVariable Long id) {
         User user = userService.findUserById(id);
         if (user == null) {
@@ -42,6 +45,7 @@ public class UserController {
     }
 
     @PostMapping
+    @Operation(tags = {"User"}, summary = "Create user", description = "Create user")
     @ResponseStatus(code = HttpStatus.CREATED)
     public ResponseEntity<User> createUser(@RequestBody User user) {
         user = userService.createUser(user);
@@ -49,6 +53,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
+    @Operation(tags = {"User"}, summary = "Update user", description = "Update user by id and body")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
         if (userService.findUserById(id) == null) {
             return ResponseEntity.notFound().build();
@@ -59,6 +64,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(tags = {"User"}, summary = "Delete user", description = "Delete user by id")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         if (userService.findUserById(id) == null) {
             return ResponseEntity.notFound().build();

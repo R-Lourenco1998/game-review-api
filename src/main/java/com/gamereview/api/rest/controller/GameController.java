@@ -2,6 +2,7 @@ package com.gamereview.api.rest.controller;
 
 import com.gamereview.api.entities.Game;
 import com.gamereview.api.services.GameService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,11 +28,13 @@ public class GameController {
     }
 
     @GetMapping
+    @Operation(tags = {"Game"}, summary = "Find all games", description = "Find all games")
     public List<Game> findAll() {
         return gameService.findAllGames();
     }
 
     @GetMapping("/{id}")
+    @Operation(tags = {"Game"}, summary = "Find game by id", description = "Find game by id")
     public ResponseEntity<Game> findGameById(@PathVariable Long id){
         Game game = gameService.findGameById(id);
         if(game == null){
@@ -41,6 +44,7 @@ public class GameController {
     }
 
     @PostMapping
+    @Operation(tags = {"Game"}, summary = "Create game", description = "Create game")
     @ResponseStatus(code = HttpStatus.CREATED)
     public ResponseEntity<Game> createGame(@RequestBody Game game){
         game = gameService.createGame(game);
@@ -48,6 +52,7 @@ public class GameController {
     }
 
     @PutMapping("/{id}")
+    @Operation(tags = {"Game"}, summary = "Update game", description = "Update game by id and body")
     public ResponseEntity<Game> updateGame(@PathVariable Long id, @RequestBody Game game){
         if(gameService.findGameById(id) == null){
             return ResponseEntity.notFound().build();
@@ -58,6 +63,7 @@ public class GameController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(tags = {"Game"}, summary = "Delete game", description = "Delete game by id")
     public ResponseEntity<Void> deleteGame(@PathVariable Long id){
         if(gameService.findGameById(id) == null){
             return ResponseEntity.notFound().build();
