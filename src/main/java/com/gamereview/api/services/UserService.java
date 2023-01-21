@@ -28,6 +28,7 @@ public class UserService {
       this.userRepository.deleteById(id);
     }
 
+    //Depois adicionarei exceções personalizadas aqui
     public User findUserById(Long id){
         Optional<User> user = this.userRepository.findById(id);
         return user.orElse(null);
