@@ -33,15 +33,25 @@ public class DbLoader implements CommandLineRunner {
     public void run(String... args) throws Exception {
         log.info("Populating db with Users and Games");
 
-        Game Game1 = new Game();
-        Game1.setName("The Last of Us Part 1");
-        Game1.setGenre("Action");
-        Game1.setPlatform("Playstation 5");
-        Game1.setReleaseDate(LocalDate.of(2022, 9, 2));
-        Game1.setDeveloper("Naughty Dog");
-        Game1.setPublisher("Sony Interactive Entertainment");
-        Game1.setDescription("The Last of Us Part I conta a história de Joel, um sobrevivente abatido que perdeu a filha no início de uma pandemia devastadora que dizimou a população");
-        gameRepository.save(Game1);
+        Game game1 = new Game();
+        game1.setName("The Last of Us Part 1");
+        game1.setGenre("Action");
+        game1.setPlatform("Playstation 5");
+        game1.setReleaseDate(LocalDate.of(2022, 9, 2));
+        game1.setDeveloper("Naughty Dog");
+        game1.setPublisher("Sony Interactive Entertainment");
+        game1.setDescription("The Last of Us Part I conta a história de Joel, um sobrevivente abatido que perdeu a filha no início de uma pandemia devastadora que dizimou a população e é contratado para tirar uma adolescente corajosa e madura de apenas 14 anos, chamada Ellie, de uma zona de quarentena militar. Porém, o que começa como um pequeno serviço se transforma em uma jornada brutal pelos Estados Unidos. Já a campanha Left Behind explora os eventos que mudaram para sempre as vidas de Ellie e sua melhor amiga, Riley, e combina temas de sobrevivência, lealdade e amor com momentos intensos de ação.");
+
+        Game game2 = new Game();
+        game2.setName("God of War Ragnarök");
+        game2.setGenre("Action");
+        game2.setPlatform("Playstation 5");
+        game2.setReleaseDate(LocalDate.of(2022, 11, 9));
+        game2.setDeveloper("Sony Santa Monica");
+        game2.setPublisher("Sony Interactive Entertainment");
+        game2.setDescription("Kratos e Atreus devem viajar pelos Nove Reinos em busca de respostas enquanto as forças asgardianas se preparam para uma batalha profetizada que causará o fim do mundo. Nessa jornada, eles explorarão paisagens míticas impressionantes e enfrentarão inimigos aterradores: deuses nórdicos e monstros.");
+        gameRepository.save(game1);
+        gameRepository.save(game2);
     }
 
 }
