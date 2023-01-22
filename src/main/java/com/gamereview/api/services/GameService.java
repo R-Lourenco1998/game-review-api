@@ -1,61 +1,18 @@
 package com.gamereview.api.services;
-
 import com.gamereview.api.entities.Game;
-import com.gamereview.api.entities.dto.GameDropdownDTO;
-import com.gamereview.api.repositories.GameRepository;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-@Service
-public class GameService {
+public interface GameService {
 
-    private final GameRepository gameRepository;
+    List<Game> findAllGames();
 
-    public GameService(GameRepository gameRepository) {
-        this.gameRepository = gameRepository;
-    }
+    Game createGame(Game game);
 
-    public Game createGame(Game game){
-       return this.gameRepository.save(game);
-    }
+    Game findGameById(Long id);
 
-    public List<GameDropdownDTO> findAllGamesDropdown(){
-        GameDropdownDTO gameDropdownDTO = new GameDropdownDTO();
-        List<GameDropdownDTO> gamesDTO = new ArrayList<>();
-        List<Game> games = this.gameRepository.findAll();
-            for (Game game : games) {
-            gameDropdownDTO.setId(game.getId());
-            gameDropdownDTO.setName(game.getName());
-            gamesDTO.add(gameDropdownDTO);
-        }
+    Game updateGame(Long id, Game game);
 
-        return gamesDTO;
-    }
-    public Game findGameById(Long id){
-        Optional<Game> game = this.gameRepository.findById(id);
-        return game.orElse(null);
-    }
+    void deleteGame(Long id);
 
-    public List<Game> findAllGames(){
-        return this.gameRepository.findAll();
-    }
-
-    public Game updateGame(Long id, Game game){
-        Game obj = findGameById(id);
-        obj.setName(game.getName());
-        obj.setDescription(game.getDescription());
-        obj.setGenre(game.getGenre());
-        obj.setPlatform(game.getPlatform());
-        obj.setReleaseDate(game.getReleaseDate());
-        obj.setDeveloper(game.getDeveloper());
-        obj.setPublisher(game.getPublisher());
-        return this.gameRepository.save(game);
-    }
-
-    public void deleteGame(Long id){
-        this.gameRepository.deleteById(id);
-    }
+    List<Game> findAllGamesDropdown();
 }

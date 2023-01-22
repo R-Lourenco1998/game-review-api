@@ -1,10 +1,13 @@
 package com.gamereview.api.rest.controller;
 
 import com.gamereview.api.entities.User;
+import com.gamereview.api.entities.dto.UserDTO;
 import com.gamereview.api.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,22 +19,26 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user")
+@CrossOrigin(origins ="http://localhost:4200")
 public class UserController {
 
+    private ModelMapper modelMapper;
 
     private final UserService userService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, ModelMapper modelMapper) {
         this.userService = userService;
+        this.modelMapper = modelMapper;
     }
 
     @GetMapping
     @Operation(tags = {"User"}, summary = "Find all users", description = "Find all users")
-    public List<User> findAll() {
-        return userService.findAllUser();
+    public List<UserDTO> findAll() {
+        return userService.findAllUser().stream().map(user -> modelMapper.map(user, UserDTO.class)).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
