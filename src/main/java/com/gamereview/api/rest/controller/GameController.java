@@ -5,7 +5,6 @@ import com.gamereview.api.entities.dto.GameDropdownDTO;
 import com.gamereview.api.services.GameService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -45,7 +44,9 @@ public class GameController {
     @Operation(tags = {"Game"}, summary = "Find all games for the dropdown", description = "Find all games for the dropdown")
     public List<GameDropdownDTO> findAllGamesDropdown() {
 
-        return gameService.findAllGamesDropdown().stream().map(game -> modelMapper.map(game, GameDropdownDTO.class)).collect(Collectors.toList());
+        return gameService.findAllGamesDropdown()
+                .stream().map(game -> modelMapper.map(game, GameDropdownDTO.class))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
