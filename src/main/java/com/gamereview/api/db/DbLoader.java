@@ -50,7 +50,9 @@ public class DbLoader implements CommandLineRunner {
         game2.setReleaseDate(LocalDate.of(2022, 11, 9));
         game2.setDeveloper("Sony Santa Monica");
         game2.setPublisher("Sony Interactive Entertainment");
-        game2.setDescription("Kratos e Atreus devem viajar pelos Nove Reinos em busca de respostas enquanto as forças asgardianas se preparam para uma batalha profetizada que causará o fim do mundo. Nessa jornada, eles explorarão paisagens míticas impressionantes e enfrentarão inimigos aterradores: deuses nórdicos e monstros.");
+        game2.setDescription("Kratos e Atreus devem viajar pelos Nove Reinos em busca de respostas enquanto as forças asgardianas se preparam para uma batalha profetizada que causará o fim do mundo.  \n" +
+                "\n" +
+                "Nessa jornada, eles explorarão paisagens míticas impressionantes e enfrentarão inimigos aterradores: deuses nórdicos e monstros. A ameaça do Ragnarök se aproxima. Kratos e Atreus terão de escolher entre a segurança deles próprios e a dos reinos. ");
         game2.setImageUrl("https://game-review-java.s3.sa-east-1.amazonaws.com/God%20of%20War%20Ragnar%C3%B6k.jpg");
         gameRepository.save(game1);
         gameRepository.save(game2);
