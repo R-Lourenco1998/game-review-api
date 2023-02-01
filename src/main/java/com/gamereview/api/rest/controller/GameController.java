@@ -4,20 +4,17 @@ import com.gamereview.api.entities.Game;
 import com.gamereview.api.entities.dto.GameDropdownDTO;
 import com.gamereview.api.services.GameService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.apache.commons.io.IOUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +29,20 @@ public class GameController {
     public GameController(GameService gameService, ModelMapper modelMapper) {
         this.gameService = gameService;
         this.modelMapper = modelMapper;
+    }
+
+    @PostMapping("/image/{id}")
+    public ResponseEntity uploadImage(
+            @PathVariable Integer id,
+            @RequestParam("file") MultipartFile multipartFile) throws IOException {
+        gameService.uploadImage(id, multipartFile);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(value = "/image/{gameID}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public @ResponseBody byte[] getImage(@PathVariable Integer gameID) throws IOException {
+        ResponseInputStream<GetObjectResponse> response = gameService.getImage(gameID);
+        return IOUtils.toByteArray(response);
     }
 
     @GetMapping
@@ -51,7 +62,7 @@ public class GameController {
 
     @GetMapping("/{id}")
     @Operation(tags = {"Game"}, summary = "Find game by id", description = "Find game by id")
-    public ResponseEntity<Game> findGameById(@PathVariable Long id){
+    public ResponseEntity<Game> findGameById(@PathVariable Integer id){
         Game game = gameService.findGameById(id);
         if(game == null){
             return ResponseEntity.notFound().build();
@@ -69,7 +80,7 @@ public class GameController {
 
     @PutMapping("/{id}")
     @Operation(tags = {"Game"}, summary = "Update game", description = "Update game by id and body")
-    public ResponseEntity<Game> updateGame(@PathVariable Long id, @RequestBody Game game){
+    public ResponseEntity<Game> updateGame(@PathVariable Integer id, @RequestBody Game game){
         if(gameService.findGameById(id) == null){
             return ResponseEntity.notFound().build();
         }else{
@@ -80,7 +91,7 @@ public class GameController {
 
     @DeleteMapping("/{id}")
     @Operation(tags = {"Game"}, summary = "Delete game", description = "Delete game by id")
-    public ResponseEntity<Void> deleteGame(@PathVariable Long id){
+    public ResponseEntity<Void> deleteGame(@PathVariable Integer id){
         if(gameService.findGameById(id) == null){
             return ResponseEntity.notFound().build();
         }else{
