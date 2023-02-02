@@ -32,10 +32,8 @@ public class GameController {
     }
 
     @PostMapping("/image/{id}")
-    public ResponseEntity uploadImage(
-            @PathVariable Integer id,
-            @RequestParam("file") MultipartFile multipartFile) throws IOException {
-        gameService.uploadImage(id, multipartFile);
+    public ResponseEntity uploadImage(@PathVariable Integer id, @RequestParam("file") MultipartFile multipartFile, @RequestParam("imageType") String imageType) throws IOException {
+        gameService.uploadImage(id, multipartFile, imageType);
         return ResponseEntity.noContent().build();
     }
 

@@ -41,7 +41,7 @@ public class GameServiceImpl implements GameService {
     private String accessKey;
     @Value("${aws.s3.secretKey}")
     private String secretKey;
-    public void uploadImage(Integer id, MultipartFile multipartFile){
+    public void uploadImage(Integer id, MultipartFile multipartFile, String imageType){
         try {
 
             Game game = findGameById(id);
@@ -56,12 +56,19 @@ public class GameServiceImpl implements GameService {
                     .withRegion(Regions.SA_EAST_1)
                     .build();
 
-            fileName = game.getName() + ".jpg";
-
+            if(imageType.equals("cover")) {
+                fileName = "cover/" + game.getName() + ".jpg";
+            }else if(imageType.equals("game")){
+                fileName = "games/" + game.getName() + ".jpg";
+            }
+            //fileName = "games/"+game.getName() + ".jpg";
             s3client.putObject(bucketName, fileName, multipartFile.getInputStream(), null);
-
             URL url = s3client.getUrl(bucketName, fileName);
-            game.setImageUrl(url.toString());
+            if(imageType.equals("cover")){
+                game.setImageCoverUrl(url.toString());
+            } else if(imageType.equals("game")){
+                game.setImageUrl(url.toString());
+            }
             gameRepository.save(game);
         } catch (IOException e) {
             e.printStackTrace();

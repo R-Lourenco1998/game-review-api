@@ -30,6 +30,7 @@ public class Game implements Serializable{
 
     private String genre;
 
+    //transformar platform em array de enums
     private String platform;
 
     private LocalDate releaseDate;
@@ -38,6 +39,9 @@ public class Game implements Serializable{
 
     private String publisher;
 
-    @Column(name = "image_url", length = 100)
+    @Column(name = "image_url", length = 256)
     private String imageUrl;
+
+    @Column(name = "image_cover_url", length = 256)
+    private String imageCoverUrl;
 }
