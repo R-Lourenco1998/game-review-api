@@ -48,8 +48,8 @@ public class GameServiceImpl implements GameService {
             String fileName = multipartFile.getOriginalFilename();
             String extension = FilenameUtils.getExtension(fileName);
             assert extension != null;
-            if(!extension.equals("jpg") && !extension.equals("jpeg")){
-                throw new FileExtensionInvalidException("Extensão de arquivo inválida: " + extension + ". Envie apenas jpg ou jpeg.");
+            if(!extension.equals("jpg") && !extension.equals("jpeg") && !extension.equals("png")){
+                throw new FileExtensionInvalidException("Extensão de arquivo inválida: " + extension + ". Envie apenas jpg, jpeg ou png.");
             }
             AmazonS3 s3client = AmazonS3ClientBuilder.standard()
                     .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
@@ -59,7 +59,7 @@ public class GameServiceImpl implements GameService {
             if(imageType.equals("cover")) {
                 fileName = "cover/" + game.getName() + ".jpg";
             }else if(imageType.equals("game")){
-                fileName = "games/" + game.getName() + ".jpg";
+                fileName = "games/" + game.getName() + ".png";
             }
             //fileName = "games/"+game.getName() + ".jpg";
             s3client.putObject(bucketName, fileName, multipartFile.getInputStream(), null);
