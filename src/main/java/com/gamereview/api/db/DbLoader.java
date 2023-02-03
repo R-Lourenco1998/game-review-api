@@ -1,6 +1,7 @@
 package com.gamereview.api.db;
 
 import com.gamereview.api.entities.Game;
+import com.gamereview.api.enumaration.PlatformEnum;
 import com.gamereview.api.repositories.GameRepository;
 import com.gamereview.api.repositories.UserRepository;
 import com.gamereview.api.services.GameService;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 
 @Profile("db-dev")
 @Slf4j
@@ -34,9 +36,35 @@ public class DbLoader implements CommandLineRunner {
         log.info("Populating db with Users and Games");
 
         Game game1 = new Game();
+//        Platform platform1 = new Platform();
+//        Platform platform2 = new Platform();
+//        Platform platform3 = new Platform();
+//        Platform platform4 = new Platform();
+//
+//        platform1.setId(1);
+//        platform1.setName("Playstation 5");
+//        platform1.setManufacturer("Sony");
+//
+//        platform2.setId(2);
+//        platform2.setName("Xbox Series X|S");
+//        platform2.setManufacturer("Microsoft");
+//
+//        platform3.setId(3);
+//        platform3.setName("PC");
+//        platform3.setManufacturer("Valve");
+//
+//        platform4.setId(4);
+//        platform4.setName("Playstation 4");
+//        platform4.setManufacturer("Sony");
+//
+//        platformRepository.save(platform1);
+//        platformRepository.save(platform2);
+//        platformRepository.save(platform3);
+//        platformRepository.save(platform4);
+
         game1.setName("The Last of Us Part 1");
         game1.setGenre("Action");
-        game1.setPlatform("Playstation 5");
+        game1.setPlatforms(Arrays.asList(PlatformEnum.PC, PlatformEnum.PS5));
         game1.setReleaseDate(LocalDate.of(2022, 9, 2));
         game1.setDeveloper("Naughty Dog");
         game1.setPublisher("Sony Interactive Entertainment");
@@ -47,7 +75,7 @@ public class DbLoader implements CommandLineRunner {
         Game game2 = new Game();
         game2.setName("God of War Ragnarök");
         game2.setGenre("Action");
-        game2.setPlatform("Playstation 5");
+        game2.setPlatforms(Arrays.asList(PlatformEnum.PS4, PlatformEnum.PS5));
         game2.setReleaseDate(LocalDate.of(2022, 11, 9));
         game2.setDeveloper("Sony Santa Monica");
         game2.setPublisher("Sony Interactive Entertainment");

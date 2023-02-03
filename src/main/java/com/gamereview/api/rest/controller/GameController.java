@@ -2,6 +2,7 @@ package com.gamereview.api.rest.controller;
 
 import com.gamereview.api.entities.Game;
 import com.gamereview.api.entities.dto.GameDropdownDTO;
+import com.gamereview.api.enumaration.PlatformEnum;
 import com.gamereview.api.services.GameService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.apache.commons.io.IOUtils;
@@ -15,6 +16,7 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,15 +33,28 @@ public class GameController {
         this.modelMapper = modelMapper;
     }
 
+    @GetMapping("/platforms")
+    public List<PlatformEnum> getPlatforms() {
+        return Arrays.asList(PlatformEnum.values());
+    }
+
     @PostMapping("/image/{id}")
-    public ResponseEntity uploadImage(@PathVariable Integer id, @RequestParam("file") MultipartFile multipartFile, @RequestParam("imageType") String imageType) throws IOException {
+    public ResponseEntity uploadImage(@PathVariable Integer id, @RequestParam("file") MultipartFile multipartFile,
+                                      @RequestParam("imageType") String imageType) throws IOException {
         gameService.uploadImage(id, multipartFile, imageType);
         return ResponseEntity.noContent().build();
     }
+    @PostMapping
+    @Operation(tags = {"Game"}, summary = "Create game", description = "Create game")
+    @ResponseStatus(code = HttpStatus.CREATED)
+    public ResponseEntity<Game> createGame(@RequestBody Game game, @RequestParam("file") MultipartFile multipartFile){
 
-    @GetMapping(value = "/image/{gameID}", produces = MediaType.IMAGE_JPEG_VALUE)
-    public @ResponseBody byte[] getImage(@PathVariable Integer gameID) throws IOException {
-        ResponseInputStream<GetObjectResponse> response = gameService.getImage(gameID);
+        return ResponseEntity.ok().body(gameService.createGame(game));
+    }
+
+    @GetMapping(value = "/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public @ResponseBody byte[] getImage(@PathVariable Integer id) throws IOException {
+        ResponseInputStream<GetObjectResponse> response = gameService.getImage(id);
         return IOUtils.toByteArray(response);
     }
 
@@ -65,14 +80,6 @@ public class GameController {
         if(game == null){
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok().body(game);
-    }
-
-    @PostMapping
-    @Operation(tags = {"Game"}, summary = "Create game", description = "Create game")
-    @ResponseStatus(code = HttpStatus.CREATED)
-    public ResponseEntity<Game> createGame(@RequestBody Game game){
-        game = gameService.createGame(game);
         return ResponseEntity.ok().body(game);
     }
 

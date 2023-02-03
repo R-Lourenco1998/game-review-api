@@ -115,7 +115,6 @@ public class GameServiceImpl implements GameService {
         obj.setName(game.getName());
         obj.setDescription(game.getDescription());
         obj.setGenre(game.getGenre());
-        obj.setPlatform(game.getPlatform());
         obj.setReleaseDate(game.getReleaseDate());
         obj.setDeveloper(game.getDeveloper());
         obj.setPublisher(game.getPublisher());
