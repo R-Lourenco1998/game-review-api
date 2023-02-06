@@ -38,17 +38,23 @@ public class GameController {
         return Arrays.asList(PlatformEnum.values());
     }
 
-    @PostMapping("/image/{id}")
-    public ResponseEntity uploadImage(@PathVariable Integer id, @RequestParam("file") MultipartFile multipartFile,
-                                      @RequestParam("imageType") String imageType) throws IOException {
-        gameService.uploadImage(id, multipartFile, imageType);
+    @PostMapping("/image/list/{id}")
+    @Operation(tags = {"Game"}, summary = "Create game with image to list of games", description = "image of the game to display on game list")
+    public ResponseEntity uploadImageList(@PathVariable Integer id, @RequestParam("imageList") MultipartFile multipartFile) throws IOException {
+        gameService.uploadImageList(id, multipartFile);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/image/cover/{id}")
+    @Operation(tags = {"Game"}, summary = "Create game with imagem cover", description = "image cover of the game to display on game page")
+    public ResponseEntity uploadImageCover(@PathVariable Integer id, @RequestParam("imageCover") MultipartFile multipartFile) throws IOException {
+        gameService.uploadImageCover(id, multipartFile);
         return ResponseEntity.noContent().build();
     }
     @PostMapping
     @Operation(tags = {"Game"}, summary = "Create game", description = "Create game")
     @ResponseStatus(code = HttpStatus.CREATED)
-    public ResponseEntity<Game> createGame(@RequestBody Game game, @RequestParam("file") MultipartFile multipartFile){
-
+    public ResponseEntity<Game> createGame(@RequestBody Game game){
         return ResponseEntity.ok().body(gameService.createGame(game));
     }
 

@@ -41,35 +41,50 @@ public class GameServiceImpl implements GameService {
     private String accessKey;
     @Value("${aws.s3.secretKey}")
     private String secretKey;
-    public void uploadImage(Integer id, MultipartFile multipartFile, String imageType){
+    public void uploadImageList(Integer id, MultipartFile multipartFile){
         try {
 
             Game game = findGameById(id);
             String fileName = multipartFile.getOriginalFilename();
             String extension = FilenameUtils.getExtension(fileName);
             assert extension != null;
-            if(!extension.equals("jpg") && !extension.equals("jpeg") && !extension.equals("png")){
-                throw new FileExtensionInvalidException("Extensão de arquivo inválida: " + extension + ". Envie apenas jpg, jpeg ou png.");
+            if(!extension.equals("png")){
+                throw new FileExtensionInvalidException("Extensão de arquivo inválida: " + extension + ". Envie apenas png.");
             }
             AmazonS3 s3client = AmazonS3ClientBuilder.standard()
                     .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
                     .withRegion(Regions.SA_EAST_1)
                     .build();
-
-            if(imageType.equals("cover")) {
-                fileName = "cover/" + game.getName() + ".jpg";
-            }else if(imageType.equals("game")){
                 fileName = "games/" + game.getName() + ".png";
-            }
-            //fileName = "games/"+game.getName() + ".jpg";
+
             s3client.putObject(bucketName, fileName, multipartFile.getInputStream(), null);
             URL url = s3client.getUrl(bucketName, fileName);
-            if(imageType.equals("cover")){
-                game.setImageCoverUrl(url.toString());
-            } else if(imageType.equals("game")){
                 game.setImageUrl(url.toString());
+                gameRepository.save(game);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void uploadImageCover(Integer id, MultipartFile multipartFile){
+        try {
+
+            Game game = findGameById(id);
+            String fileName = multipartFile.getOriginalFilename();
+            String extension = FilenameUtils.getExtension(fileName);
+            assert extension != null;
+            if(!extension.equals("jpeg") && !extension.equals("jpg")){
+                throw new FileExtensionInvalidException("Extensão de arquivo inválida: " + extension + ". Envie apenas jpg ou jpeg.");
             }
-            gameRepository.save(game);
+            AmazonS3 s3client = AmazonS3ClientBuilder.standard()
+                    .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
+                    .withRegion(Regions.SA_EAST_1)
+                    .build();
+                fileName = "cover/" + game.getName() + ".jpg";
+
+            s3client.putObject(bucketName, fileName, multipartFile.getInputStream(), null);
+            URL url = s3client.getUrl(bucketName, fileName);
+                game.setImageCoverUrl(url.toString());
+                gameRepository.save(game);
         } catch (IOException e) {
             e.printStackTrace();
         }

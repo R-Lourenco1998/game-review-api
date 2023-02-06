@@ -31,15 +31,13 @@ public class Game implements Serializable{
     private String description;
 
     private String genre;
-
-    //transformar platform em array de enums
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
-    private List<PlatformEnum> platforms;
-
     private LocalDate releaseDate;
 
     private String developer;
+
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    private List<PlatformEnum> platforms;
 
     private String publisher;
 

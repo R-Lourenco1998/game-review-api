@@ -21,7 +21,8 @@ public interface GameService {
 
     List<Game> findAllGamesDropdown();
 
-    void uploadImage(Integer id, MultipartFile multipartFile, String imageType) throws IOException;
+    void uploadImageList(Integer id, MultipartFile multipartFile) throws IOException;
+    void uploadImageCover(Integer id, MultipartFile multipartFile) throws IOException;
 
     ResponseInputStream <GetObjectResponse> getImage(Integer gameID);
 }
