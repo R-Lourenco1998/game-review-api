@@ -1,22 +1,20 @@
 package com.gamereview.api.db;
 
 import com.gamereview.api.entities.Game;
-import com.gamereview.api.enumaration.PlatformEnum;
 import com.gamereview.api.repositories.GameRepository;
 import com.gamereview.api.repositories.UserRepository;
 import com.gamereview.api.services.GameService;
 import com.gamereview.api.services.UserService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.util.Arrays;
-
 @Profile("db-dev")
 @Slf4j
 @Component
+@AllArgsConstructor
 public class DbLoader implements CommandLineRunner {
 
     private UserRepository userRepository;
@@ -25,11 +23,6 @@ public class DbLoader implements CommandLineRunner {
 
     private GameService gameService;
     private GameRepository gameRepository;
-
-    public DbLoader(UserRepository userRepository, GameRepository gameRepository) {
-        this.userRepository = userRepository;
-        this.gameRepository = gameRepository;
-    }
 
     @Override
     public void run(String... args) throws Exception {

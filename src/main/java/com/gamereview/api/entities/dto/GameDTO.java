@@ -1,31 +1,18 @@
-package com.gamereview.api.entities;
+package com.gamereview.api.entities.dto;
 
 import com.gamereview.api.enumaration.GenreEnum;
 import com.gamereview.api.enumaration.PlatformEnum;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@Entity
-@Table(name = "tb_game")
-public class Game implements Serializable{
+@Data
+public class GameDTO {
 
-    private static final long serialVersionUID = 1L;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
     private String name;
 
     @Lob
@@ -44,9 +31,22 @@ public class Game implements Serializable{
 
     private String publisher;
 
-    @Column(name = "image_url", length = 256)
     private String imageUrl;
-
-    @Column(name = "image_cover_url", length = 256)
     private String imageCoverUrl;
+
+    public List<Integer> getPlatformIds() {
+        List<Integer> platformsIds = new ArrayList<>();
+        for (PlatformEnum platform : platforms) {
+            platformsIds.add(platform.getId());
+        }
+        return platformsIds;
+    }
+
+    public List<Integer> getGenreIds() {
+        List<Integer> genreIds = new ArrayList<>();
+        for (GenreEnum genre : genres) {
+            genreIds.add(genre.getId());
+        }
+        return genreIds;
+    }
 }

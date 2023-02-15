@@ -1,10 +1,16 @@
 package com.gamereview.api.rest.controller;
 
 import com.gamereview.api.entities.Game;
+import com.gamereview.api.entities.dto.GameDTO;
 import com.gamereview.api.entities.dto.GameDropdownDTO;
+import com.gamereview.api.entities.dto.GenreDTO;
+import com.gamereview.api.entities.dto.PlatformDTO;
+import com.gamereview.api.enumaration.GenreEnum;
 import com.gamereview.api.enumaration.PlatformEnum;
+import com.gamereview.api.mapper.GameMapper;
 import com.gamereview.api.services.GameService;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.AllArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -16,26 +22,36 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/game")
 @CrossOrigin(origins ="http://localhost:4200")
+@AllArgsConstructor
 public class GameController {
 
     private final ModelMapper modelMapper;
     private final GameService gameService;
-
-    public GameController(GameService gameService, ModelMapper modelMapper) {
-        this.gameService = gameService;
-        this.modelMapper = modelMapper;
-    }
+    private final GameMapper mapper;
 
     @GetMapping("/platforms")
-    public List<PlatformEnum> getPlatforms() {
-        return Arrays.asList(PlatformEnum.values());
+    public ResponseEntity<List<PlatformDTO>> getPlatforms() {
+        List<PlatformDTO> platforms = new ArrayList<>();
+        for (PlatformEnum platform : PlatformEnum.values()) {
+            platforms.add(new PlatformDTO(platform.getId(), platform.getName()));
+        }
+        return ResponseEntity.ok().body(platforms);
+    }
+
+    @GetMapping("/genres")
+    public ResponseEntity<List<GenreDTO>> getGenres() {
+        List<GenreDTO> genres = new ArrayList<>();
+        for (GenreEnum genre : GenreEnum.values()) {
+            genres.add(new GenreDTO(genre.getId(), genre.getName()));
+        }
+        return ResponseEntity.ok().body(genres);
     }
 
     @PostMapping("/image/list/{id}")
@@ -54,8 +70,12 @@ public class GameController {
     @PostMapping
     @Operation(tags = {"Game"}, summary = "Create game", description = "Create game")
     @ResponseStatus(code = HttpStatus.CREATED)
-    public ResponseEntity<Game> createGame(@RequestBody Game game){
-        return ResponseEntity.ok().body(gameService.createGame(game));
+    public ResponseEntity<GameDTO> createGame(@RequestBody GameDTO dto){
+        GameDTO gameDTO = this.gameService.createGame(dto);
+//        System.out.println("id: " + gameDTO.getId());
+//        System.out.println("Name: " + gameDTO.getName());
+        //Game game = gameService.createGame(gameDTO);
+        return new ResponseEntity<>(gameDTO, HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
@@ -81,12 +101,13 @@ public class GameController {
 
     @GetMapping("/{id}")
     @Operation(tags = {"Game"}, summary = "Find game by id", description = "Find game by id")
-    public ResponseEntity<Game> findGameById(@PathVariable Integer id){
+    public ResponseEntity<GameDTO> findGameById(@PathVariable Integer id){
         Game game = gameService.findGameById(id);
+        GameDTO gameDTO = mapper.toDTO(game);
         if(game == null){
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok().body(game);
+        return ResponseEntity.ok().body(gameDTO);
     }
 
     @PutMapping("/{id}")
