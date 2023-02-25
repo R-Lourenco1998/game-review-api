@@ -1,7 +1,5 @@
 package com.gamereview.api.entities;
 
-import com.gamereview.api.enumaration.GenreEnum;
-import com.gamereview.api.enumaration.PlatformEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "tb_game")
-public class Game implements Serializable{
+public class Game implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -30,7 +28,6 @@ public class Game implements Serializable{
 
     @Lob
     private String description;
-
     @ElementCollection
     private List<Integer> genres;
     private LocalDate releaseDate;
@@ -38,8 +35,7 @@ public class Game implements Serializable{
     private String developer;
 
     @ElementCollection
-    @Enumerated(EnumType.STRING)
-    private List<PlatformEnum> platforms;
+    private List<Integer> platforms;
 
     private String publisher;
 

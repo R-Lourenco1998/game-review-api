@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user")
-@CrossOrigin(origins ="http://localhost:4200")
+@CrossOrigin(origins = "http://localhost:4200")
 @AllArgsConstructor
 public class UserController {
 
@@ -33,13 +33,14 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    @Operation(tags = {"User"}, summary = "Find all users", description = "Find all users")
+    @Operation(tags = { "User" }, summary = "Find all users", description = "Find all users")
     public List<UserDTO> findAll() {
-        return userService.findAllUser().stream().map(user -> modelMapper.map(user, UserDTO.class)).collect(Collectors.toList());
+        return userService.findAllUser().stream().map(user -> modelMapper.map(user, UserDTO.class))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    @Operation(tags = {"User"}, summary = "Find user by id", description = "Find user by id")
+    @Operation(tags = { "User" }, summary = "Find user by id", description = "Find user by id")
     public ResponseEntity<User> findById(@PathVariable Long id) {
         User user = userService.findUserById(id);
         if (user == null) {
@@ -49,7 +50,7 @@ public class UserController {
     }
 
     @PostMapping
-    @Operation(tags = {"User"}, summary = "Create user", description = "Create user")
+    @Operation(tags = { "User" }, summary = "Create user", description = "Create user")
     @ResponseStatus(code = HttpStatus.CREATED)
     public ResponseEntity<User> createUser(@RequestBody User user) {
         user = userService.createUser(user);
@@ -57,7 +58,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @Operation(tags = {"User"}, summary = "Update user", description = "Update user by id and body")
+    @Operation(tags = { "User" }, summary = "Update user", description = "Update user by id and body")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
         if (userService.findUserById(id) == null) {
             return ResponseEntity.notFound().build();
@@ -68,7 +69,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(tags = {"User"}, summary = "Delete user", description = "Delete user by id")
+    @Operation(tags = { "User" }, summary = "Delete user", description = "Delete user by id")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         if (userService.findUserById(id) == null) {
             return ResponseEntity.notFound().build();

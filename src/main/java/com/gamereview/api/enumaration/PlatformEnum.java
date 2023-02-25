@@ -26,10 +26,10 @@ public enum PlatformEnum {
         return name;
     }
 
-    public static PlatformEnum fromId(Integer id) {
+    public static String getNameById(int id) {
         for (PlatformEnum platform : PlatformEnum.values()) {
-            if (id.equals(platform.getId())) {
-                return platform;
+            if (platform.getId() == id) {
+                return platform.getName();
             }
         }
         throw new IllegalArgumentException("ID inválido para Plataforma: " + id);

@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 public class DbLoader implements CommandLineRunner {
 
     private UserRepository userRepository;
-
     private UserService userService;
 
     private GameService gameService;

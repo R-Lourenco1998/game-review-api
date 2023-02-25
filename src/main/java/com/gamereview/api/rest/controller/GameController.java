@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/game")
-@CrossOrigin(origins ="http://localhost:4200")
+@CrossOrigin(origins = "http://localhost:4200")
 @AllArgsConstructor
 public class GameController {
 
@@ -49,32 +49,33 @@ public class GameController {
     public ResponseEntity<List<GenreDTO>> getGenres() {
         List<GenreDTO> genres = new ArrayList<>();
         for (GenreEnum genre : GenreEnum.values()) {
-            genres.add(new GenreDTO(genre.getId(), genre.getName(), genre.getEnumName()));
+            genres.add(new GenreDTO(genre.getId(), genre.getName()));
         }
         return ResponseEntity.ok().body(genres);
     }
 
     @PostMapping("/image/list/{id}")
-    @Operation(tags = {"Game"}, summary = "Create game with image to list of games", description = "image of the game to display on game list")
-    public ResponseEntity uploadImageList(@PathVariable Integer id, @RequestParam("imageList") MultipartFile multipartFile) throws IOException {
+    @Operation(tags = {
+            "Game" }, summary = "Create game with image to list of games", description = "image of the game to display on game list")
+    public ResponseEntity uploadImageList(@PathVariable Integer id,
+            @RequestParam("imageList") MultipartFile multipartFile) {
         gameService.uploadImageList(id, multipartFile);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/image/cover/{id}")
-    @Operation(tags = {"Game"}, summary = "Create game with imagem cover", description = "image cover of the game to display on game page")
-    public ResponseEntity uploadImageCover(@PathVariable Integer id, @RequestParam("imageCover") MultipartFile multipartFile) throws IOException {
+    @Operation(tags = {
+            "Game" }, summary = "Create game with imagem cover", description = "image cover of the game to display on game page")
+    public ResponseEntity uploadImageCover(@PathVariable Integer id,
+            @RequestParam("imageCover") MultipartFile multipartFile) {
         gameService.uploadImageCover(id, multipartFile);
         return ResponseEntity.noContent().build();
     }
-    @PostMapping
-    @Operation(tags = {"Game"}, summary = "Create game", description = "Create game")
-    @ResponseStatus(code = HttpStatus.CREATED)
-    public ResponseEntity<GameDTO> createGame(@RequestBody GameDTO dto){
 
-//        List<GenreEnum> genres = dto.getGenreIds().stream().map
-//                (GenreEnum::fromId).collect(Collectors.toList());
-//        dto.setGenres(genres);
+    @PostMapping
+    @Operation(tags = { "Game" }, summary = "Create game", description = "Create game")
+    @ResponseStatus(code = HttpStatus.CREATED)
+    public ResponseEntity<GameDTO> createGame(@RequestBody GameDTO dto) {
         GameDTO gameDTO = this.gameService.createGame(dto);
         return new ResponseEntity<>(gameDTO, HttpStatus.CREATED);
     }
@@ -86,61 +87,69 @@ public class GameController {
     }
 
     @GetMapping
-    @Operation(tags = {"Game"}, summary = "Find all games", description = "Find all games")
+    @Operation(tags = { "Game" }, summary = "Find all games", description = "Find all games")
     public ResponseEntity<List<GameDTO>> findAll() {
 
         List<GameDTO> gameDTOList = this.gameService.findAllGames();
+        List<String> genreNames = new ArrayList<>();
+        List<String> platformsNames = new ArrayList<>();
+
         for (GameDTO gameDTO : gameDTOList) {
-            List<String> genreNames = new ArrayList<>();
             for (Integer genreId : gameDTO.getGenres()) {
                 String genreName = GenreEnum.getNameById(genreId);
                 if (genreName != null) {
                     genreNames.add(genreName);
                 }
             }
-
+            for (Integer platformId : gameDTO.getPlatforms()) {
+                String platformName = PlatformEnum.getNameById(platformId);
+                if (platformName != null) {
+                    platformsNames.add(platformName);
+                }
+            }
             gameDTO.setGenreNames(genreNames);
+            gameDTO.setPlatformNames(platformsNames);
         }
         return ResponseEntity.ok(gameDTOList);
     }
 
     @GetMapping("/{id}")
-    @Operation(tags = {"Game"}, summary = "Find game by id", description = "Find game by id")
-    public ResponseEntity<GameDTO> findGameById(@PathVariable Integer id){
+    @Operation(tags = { "Game" }, summary = "Find game by id", description = "Find game by id")
+    public ResponseEntity<GameDTO> findGameById(@PathVariable Integer id) {
         Game game = gameService.findGameById(id);
         GameDTO gameDTO = mapper.toDTO(game);
         gameDTO.setGenreNames(game.getGenres().stream().map(GenreEnum::getNameById).collect(Collectors.toList()));
-        if(game == null){
-            return ResponseEntity.notFound().build();
-        }
+        gameDTO.setPlatformNames(
+                game.getPlatforms().stream().map(PlatformEnum::getNameById).collect(Collectors.toList()));
         return ResponseEntity.ok().body(gameDTO);
     }
+
     @GetMapping("/list")
-    @Operation(tags = {"Game"}, summary = "Find all games for the dropdown", description = "Find all games for the dropdown")
+    @Operation(tags = {
+            "Game" }, summary = "Find all games for the dropdown", description = "Find all games for the dropdown")
     public List<GameDropdownDTO> findAllGamesDropdown() {
 
-        return gameService.findAllGamesDropdown()
-                .stream().map(game -> modelMapper.map(game, GameDropdownDTO.class))
+        return gameService.findAllGamesDropdown().stream().map(game -> modelMapper.map(game, GameDropdownDTO.class))
                 .collect(Collectors.toList());
     }
 
     @PutMapping("/{id}")
-    @Operation(tags = {"Game"}, summary = "Update game", description = "Update game by id and body")
-    public ResponseEntity<Game> updateGame(@PathVariable Integer id, @RequestBody Game game){
-        if(gameService.findGameById(id) == null){
+    @Operation(tags = { "Game" }, summary = "Update game", description = "Update game by id and body")
+    public ResponseEntity<Game> updateGame(@PathVariable Integer id, @RequestBody Game game) {
+        if (gameService.findGameById(id) == null) {
             return ResponseEntity.notFound().build();
-        }else{
+        } else {
             game = gameService.updateGame(id, game);
             return ResponseEntity.ok().body(game);
         }
     }
 
     @DeleteMapping("/{id}")
-    @Operation(tags = {"Game"}, summary = "Delete game", description = "Delete game by id")
-    public ResponseEntity<Void> deleteGame(@PathVariable Integer id){
-        if(gameService.findGameById(id) == null){
+    @Operation(tags = { "Game" }, summary = "Delete game", description = "Delete game by id")
+    public ResponseEntity<Void> deleteGame(@PathVariable Integer id) {
+        if (gameService.findGameById(id) == null) {
             return ResponseEntity.notFound().build();
-        }else{
+        } else {
             gameService.deleteGame(id);
             return ResponseEntity.noContent().build();
         }
