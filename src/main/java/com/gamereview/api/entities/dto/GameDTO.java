@@ -18,9 +18,12 @@ public class GameDTO {
     @Lob
     private String description;
 
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
-    private List<GenreEnum> genres;
+//    @ElementCollection
+//    @Enumerated(EnumType.STRING)
+    private List<Integer> genres;
+
+    private List<String> genreNames;
+
     private LocalDate releaseDate;
 
     private String developer;
@@ -34,19 +37,23 @@ public class GameDTO {
     private String imageUrl;
     private String imageCoverUrl;
 
-    public List<Integer> getPlatformIds() {
-        List<Integer> platformsIds = new ArrayList<>();
-        for (PlatformEnum platform : platforms) {
-            platformsIds.add(platform.getId());
-        }
-        return platformsIds;
-    }
+//    public List<Integer> getPlatformIds() {
+//        List<Integer> platformsIds = new ArrayList<>();
+//        for (PlatformEnum platform : platforms) {
+//            platformsIds.add(platform.getId());
+//        }
+//        return platformsIds;
+//    }
+//
+//    public List<Integer> getGenreIds() {
+//        List<Integer> genreIds = new ArrayList<>();
+//        for (GenreEnum genre : genres) {
+//            genreIds.add(genre.getId());
+//        }
+//        return genreIds;
+//    }
 
-    public List<Integer> getGenreIds() {
-        List<Integer> genreIds = new ArrayList<>();
-        for (GenreEnum genre : genres) {
-            genreIds.add(genre.getId());
-        }
-        return genreIds;
+    public void setGenreNames(List<String> genreNames) {
+        this.genreNames = genreNames;
     }
 }

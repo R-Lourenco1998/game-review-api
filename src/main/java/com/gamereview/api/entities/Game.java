@@ -32,8 +32,7 @@ public class Game implements Serializable{
     private String description;
 
     @ElementCollection
-    @Enumerated(EnumType.STRING)
-    private List<GenreEnum> genres;
+    private List<Integer> genres;
     private LocalDate releaseDate;
 
     private String developer;

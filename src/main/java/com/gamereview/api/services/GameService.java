@@ -114,29 +114,17 @@ public class GameService {
     }
     public GameDTO createGame(GameDTO gameDTO) {
         Game save = gameMapper.toEntity(gameDTO);
-//        Game game = gameMapper.toEntity(gameDTO);
-//        game.setName(gameDTO.getName());
-//        game.setDescription(gameDTO.getDescription());
-//        game.setPlatforms(getPlatformsById(gameDTO.getPlatformIds()));
-//        game.setGenres(getGenreById(gameDTO.getGenreIds()));
-//        game.setDeveloper(gameDTO.getDeveloper());
-//        game.setPublisher(gameDTO.getPublisher());
-//        game.setReleaseDate(gameDTO.getReleaseDate());
-//        game.setImageCoverUrl(gameDTO.getImageCoverUrl());
-//        game.setImageUrl(gameDTO.getImageUrl());
-        //return this.gameRepository.save(game);
-        System.out.println("id: " + save.getId());
         return gameMapper.toDTO(gameRepository.save(save));
     }
 
 
-    private List<GenreEnum> getGenreById(List<Integer> genreIds) {
-        return genreIds.stream().map(GenreEnum::fromId).collect(Collectors.toList());
-    }
-
-    private List<PlatformEnum> getPlatformsById(List<Integer> platformsIds) {
-        return platformsIds.stream().map(PlatformEnum::fromId).collect(Collectors.toList());
-    }
+//    private List<GenreEnum> getGenreById(List<Integer> genreIds) {
+//        return genreIds.stream().map(GenreEnum::fromId).collect(Collectors.toList());
+//    }
+//
+//    private List<PlatformEnum> getPlatformsById(List<Integer> platformsIds) {
+//        return platformsIds.stream().map(PlatformEnum::fromId).collect(Collectors.toList());
+//    }
 
     public List<Game> findAllGamesDropdown() {
         return this.gameRepository.findAll();
@@ -147,8 +135,9 @@ public class GameService {
         return game.orElse(null);
     }
 
-    public List<Game> findAllGames() {
-        return this.gameRepository.findAll();
+    public List<GameDTO> findAllGames() {
+        List<Game> savedGames = this.gameRepository.findAll();
+        return gameMapper.gamesListToDTO(savedGames);
     }
 
     public Game updateGame(Integer id, Game game) {
