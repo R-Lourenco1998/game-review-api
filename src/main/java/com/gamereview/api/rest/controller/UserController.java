@@ -4,6 +4,7 @@ import com.gamereview.api.entities.User;
 import com.gamereview.api.entities.dto.UserDTO;
 import com.gamereview.api.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,16 +25,12 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/user")
 @CrossOrigin(origins ="http://localhost:4200")
+@AllArgsConstructor
 public class UserController {
 
     private ModelMapper modelMapper;
 
     private final UserService userService;
-
-    public UserController(UserService userService, ModelMapper modelMapper) {
-        this.userService = userService;
-        this.modelMapper = modelMapper;
-    }
 
     @GetMapping
     @Operation(tags = {"User"}, summary = "Find all users", description = "Find all users")

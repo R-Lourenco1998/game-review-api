@@ -1,9 +1,16 @@
 package com.gamereview.api.rest.controller;
 
 import com.gamereview.api.entities.Game;
+import com.gamereview.api.entities.dto.GameDTO;
 import com.gamereview.api.entities.dto.GameDropdownDTO;
+import com.gamereview.api.entities.dto.GenreDTO;
+import com.gamereview.api.entities.dto.PlatformDTO;
+import com.gamereview.api.enumaration.GenreEnum;
+import com.gamereview.api.enumaration.PlatformEnum;
+import com.gamereview.api.mapper.GameMapper;
 import com.gamereview.api.services.GameService;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.AllArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -15,40 +22,99 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/game")
 @CrossOrigin(origins ="http://localhost:4200")
+@AllArgsConstructor
 public class GameController {
 
     private final ModelMapper modelMapper;
     private final GameService gameService;
+    private final GameMapper mapper;
 
-    public GameController(GameService gameService, ModelMapper modelMapper) {
-        this.gameService = gameService;
-        this.modelMapper = modelMapper;
+    @GetMapping("/platforms")
+    public ResponseEntity<List<PlatformDTO>> getPlatforms() {
+        List<PlatformDTO> platforms = new ArrayList<>();
+        for (PlatformEnum platform : PlatformEnum.values()) {
+            platforms.add(new PlatformDTO(platform.getId(), platform.getName()));
+        }
+        return ResponseEntity.ok().body(platforms);
     }
 
-    @PostMapping("/image/{id}")
-    public ResponseEntity uploadImage(@PathVariable Integer id, @RequestParam("file") MultipartFile multipartFile, @RequestParam("imageType") String imageType) throws IOException {
-        gameService.uploadImage(id, multipartFile, imageType);
+    @GetMapping("/genres")
+    public ResponseEntity<List<GenreDTO>> getGenres() {
+        List<GenreDTO> genres = new ArrayList<>();
+        for (GenreEnum genre : GenreEnum.values()) {
+            genres.add(new GenreDTO(genre.getId(), genre.getName(), genre.getEnumName()));
+        }
+        return ResponseEntity.ok().body(genres);
+    }
+
+    @PostMapping("/image/list/{id}")
+    @Operation(tags = {"Game"}, summary = "Create game with image to list of games", description = "image of the game to display on game list")
+    public ResponseEntity uploadImageList(@PathVariable Integer id, @RequestParam("imageList") MultipartFile multipartFile) throws IOException {
+        gameService.uploadImageList(id, multipartFile);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/image/{gameID}", produces = MediaType.IMAGE_JPEG_VALUE)
-    public @ResponseBody byte[] getImage(@PathVariable Integer gameID) throws IOException {
-        ResponseInputStream<GetObjectResponse> response = gameService.getImage(gameID);
+    @PostMapping("/image/cover/{id}")
+    @Operation(tags = {"Game"}, summary = "Create game with imagem cover", description = "image cover of the game to display on game page")
+    public ResponseEntity uploadImageCover(@PathVariable Integer id, @RequestParam("imageCover") MultipartFile multipartFile) throws IOException {
+        gameService.uploadImageCover(id, multipartFile);
+        return ResponseEntity.noContent().build();
+    }
+    @PostMapping
+    @Operation(tags = {"Game"}, summary = "Create game", description = "Create game")
+    @ResponseStatus(code = HttpStatus.CREATED)
+    public ResponseEntity<GameDTO> createGame(@RequestBody GameDTO dto){
+
+//        List<GenreEnum> genres = dto.getGenreIds().stream().map
+//                (GenreEnum::fromId).collect(Collectors.toList());
+//        dto.setGenres(genres);
+        GameDTO gameDTO = this.gameService.createGame(dto);
+        return new ResponseEntity<>(gameDTO, HttpStatus.CREATED);
+    }
+
+    @GetMapping(value = "/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public @ResponseBody byte[] getImage(@PathVariable Integer id) throws IOException {
+        ResponseInputStream<GetObjectResponse> response = gameService.getImage(id);
         return IOUtils.toByteArray(response);
     }
 
     @GetMapping
     @Operation(tags = {"Game"}, summary = "Find all games", description = "Find all games")
-    public List<Game> findAll() {
-        return gameService.findAllGames();
+    public ResponseEntity<List<GameDTO>> findAll() {
+
+        List<GameDTO> gameDTOList = this.gameService.findAllGames();
+        for (GameDTO gameDTO : gameDTOList) {
+            List<String> genreNames = new ArrayList<>();
+            for (Integer genreId : gameDTO.getGenres()) {
+                String genreName = GenreEnum.getNameById(genreId);
+                if (genreName != null) {
+                    genreNames.add(genreName);
+                }
+            }
+
+            gameDTO.setGenreNames(genreNames);
+        }
+        return ResponseEntity.ok(gameDTOList);
     }
 
+    @GetMapping("/{id}")
+    @Operation(tags = {"Game"}, summary = "Find game by id", description = "Find game by id")
+    public ResponseEntity<GameDTO> findGameById(@PathVariable Integer id){
+        Game game = gameService.findGameById(id);
+        GameDTO gameDTO = mapper.toDTO(game);
+        gameDTO.setGenreNames(game.getGenres().stream().map(GenreEnum::getNameById).collect(Collectors.toList()));
+        if(game == null){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok().body(gameDTO);
+    }
     @GetMapping("/list")
     @Operation(tags = {"Game"}, summary = "Find all games for the dropdown", description = "Find all games for the dropdown")
     public List<GameDropdownDTO> findAllGamesDropdown() {
@@ -56,24 +122,6 @@ public class GameController {
         return gameService.findAllGamesDropdown()
                 .stream().map(game -> modelMapper.map(game, GameDropdownDTO.class))
                 .collect(Collectors.toList());
-    }
-
-    @GetMapping("/{id}")
-    @Operation(tags = {"Game"}, summary = "Find game by id", description = "Find game by id")
-    public ResponseEntity<Game> findGameById(@PathVariable Integer id){
-        Game game = gameService.findGameById(id);
-        if(game == null){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok().body(game);
-    }
-
-    @PostMapping
-    @Operation(tags = {"Game"}, summary = "Create game", description = "Create game")
-    @ResponseStatus(code = HttpStatus.CREATED)
-    public ResponseEntity<Game> createGame(@RequestBody Game game){
-        game = gameService.createGame(game);
-        return ResponseEntity.ok().body(game);
     }
 
     @PutMapping("/{id}")
