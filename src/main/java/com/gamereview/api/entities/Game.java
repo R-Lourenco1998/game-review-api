@@ -1,5 +1,7 @@
 package com.gamereview.api.entities;
 
+import com.gamereview.api.enumaration.GenreEnum;
+import com.gamereview.api.enumaration.PlatformEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,6 +10,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -28,14 +31,15 @@ public class Game implements Serializable{
     @Lob
     private String description;
 
-    private String genre;
-
-    //transformar platform em array de enums
-    private String platform;
-
+    @ElementCollection
+    private List<Integer> genres;
     private LocalDate releaseDate;
 
     private String developer;
+
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    private List<PlatformEnum> platforms;
 
     private String publisher;
 
