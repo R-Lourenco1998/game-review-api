@@ -131,30 +131,31 @@ public class GameService {
                     game.getPlatforms().stream().map(PlatformEnum::getNameById).collect(Collectors.toList()));
             return gameDTO;
         }
-        return null;
+        return null; //TODO: Criar uma exceção para quando o jogo não for encontrado
     }
 
     public List<GameDTO> findAllGames() {
         List<Game> savedGames = this.gameRepository.findAll();
         List<GameDTO> gameDTOList = gameMapper.gamesListToDTO(savedGames);
-        List<String> genreNames = new ArrayList<>();
-        List<String> platformsNames = new ArrayList<>();
 
         for (GameDTO gameDTO : gameDTOList) {
+            List<String> genreNames = new ArrayList<>();
             for (Integer genreId : gameDTO.getGenres()) {
                 String genreName = GenreEnum.getNameById(genreId);
                 if (genreName != null) {
                     genreNames.add(genreName);
                 }
-                gameDTO.setGenreNames(genreNames);
             }
+            gameDTO.setGenreNames(genreNames);
+
+            List<String> platformNames = new ArrayList<>();
             for (Integer platformId : gameDTO.getPlatforms()) {
                 String platformName = PlatformEnum.getNameById(platformId);
                 if (platformName != null) {
-                    platformsNames.add(platformName);
+                    platformNames.add(platformName);
                 }
-                gameDTO.setPlatformNames(platformsNames);
             }
+            gameDTO.setPlatformNames(platformNames);
         }
         return gameDTOList;
     }
