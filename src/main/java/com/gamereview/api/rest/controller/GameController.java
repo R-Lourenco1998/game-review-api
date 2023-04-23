@@ -91,36 +91,14 @@ public class GameController {
     public ResponseEntity<List<GameDTO>> findAll() {
 
         List<GameDTO> gameDTOList = this.gameService.findAllGames();
-        List<String> genreNames = new ArrayList<>();
-        List<String> platformsNames = new ArrayList<>();
 
-        for (GameDTO gameDTO : gameDTOList) {
-            for (Integer genreId : gameDTO.getGenres()) {
-                String genreName = GenreEnum.getNameById(genreId);
-                if (genreName != null) {
-                    genreNames.add(genreName);
-                }
-            }
-            for (Integer platformId : gameDTO.getPlatforms()) {
-                String platformName = PlatformEnum.getNameById(platformId);
-                if (platformName != null) {
-                    platformsNames.add(platformName);
-                }
-            }
-            gameDTO.setGenreNames(genreNames);
-            gameDTO.setPlatformNames(platformsNames);
-        }
         return ResponseEntity.ok(gameDTOList);
     }
 
     @GetMapping("/{id}")
     @Operation(tags = { "Game" }, summary = "Find game by id", description = "Find game by id")
     public ResponseEntity<GameDTO> findGameById(@PathVariable Integer id) {
-        Game game = gameService.findGameById(id);
-        GameDTO gameDTO = mapper.toDTO(game);
-        gameDTO.setGenreNames(game.getGenres().stream().map(GenreEnum::getNameById).collect(Collectors.toList()));
-        gameDTO.setPlatformNames(
-                game.getPlatforms().stream().map(PlatformEnum::getNameById).collect(Collectors.toList()));
+        GameDTO gameDTO = gameService.findGameById(id);
         return ResponseEntity.ok().body(gameDTO);
     }
 
@@ -135,7 +113,7 @@ public class GameController {
 
     @PutMapping("/{id}")
     @Operation(tags = { "Game" }, summary = "Update game", description = "Update game by id and body")
-    public ResponseEntity<Game> updateGame(@PathVariable Integer id, @RequestBody Game game) {
+    public ResponseEntity<GameDTO> updateGame(@PathVariable Integer id, @RequestBody GameDTO game) {
         if (gameService.findGameById(id) == null) {
             return ResponseEntity.notFound().build();
         } else {

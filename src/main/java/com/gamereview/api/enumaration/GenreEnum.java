@@ -30,7 +30,9 @@ public enum GenreEnum {
 
     ROGUE_LIKE(23, "Rogue Like"),
 
-    HACK_AND_SLASH(24, "Hack and Slash");
+    HACK_AND_SLASH(24, "Hack and Slash"),
+
+    ZUMBI(25, "Zumbi");
 
     private final int id;
     private final String name;

@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -49,7 +50,7 @@ public class GameService {
     public void uploadImageList(Integer id, MultipartFile multipartFile){
         try {
 
-            Game game = findGameById(id);
+            GameDTO gameDTO = findGameById(id);
             String fileName = multipartFile.getOriginalFilename();
             String extension = FilenameUtils.getExtension(fileName);
             assert extension != null;
@@ -60,12 +61,12 @@ public class GameService {
                     .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
                     .withRegion(Regions.SA_EAST_1)
                     .build();
-                fileName = "games/" + game.getName() + ".png";
+                fileName = "games/" + gameDTO.getName() + ".png";
 
             s3client.putObject(bucketName, fileName, multipartFile.getInputStream(), null);
             URL url = s3client.getUrl(bucketName, fileName);
-                game.setImageUrl(url.toString());
-                gameRepository.save(game);
+            gameDTO.setImageUrl(url.toString());
+                gameRepository.save(gameMapper.toEntity(gameDTO));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -73,7 +74,7 @@ public class GameService {
     public void uploadImageCover(Integer id, MultipartFile multipartFile){
         try {
 
-            Game game = findGameById(id);
+            GameDTO gameDTO = findGameById(id);
             String fileName = multipartFile.getOriginalFilename();
             String extension = FilenameUtils.getExtension(fileName);
             assert extension != null;
@@ -84,24 +85,24 @@ public class GameService {
                     .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
                     .withRegion(Regions.SA_EAST_1)
                     .build();
-                fileName = "cover/" + game.getName() + ".jpg";
+                fileName = "cover/" + gameDTO.getName() + ".jpg";
 
             s3client.putObject(bucketName, fileName, multipartFile.getInputStream(), null);
             URL url = s3client.getUrl(bucketName, fileName);
-                game.setImageCoverUrl(url.toString());
-                gameRepository.save(game);
+            gameDTO.setImageCoverUrl(url.toString());
+                gameRepository.save(gameMapper.toEntity(gameDTO));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public ResponseInputStream<GetObjectResponse> getImage(Integer gameID){
-        Game game = findGameById(gameID);
+        GameDTO gameDTO = findGameById(gameID);
         try{
             return s3Client.getObject(GetObjectRequest
                     .builder()
                     .bucket(bucketName)
-                    .key("games/"+game.getName())
+                    .key("games/"+gameDTO.getName())
                     .build());
         }catch (NoSuchKeyException e){
             return s3Client.getObject(GetObjectRequest
@@ -116,32 +117,50 @@ public class GameService {
         Game save = gameMapper.toEntity(gameDTO);
         return gameMapper.toDTO(gameRepository.save(save));
     }
-
-
-//    private List<GenreEnum> getGenreById(List<Integer> genreIds) {
-//        return genreIds.stream().map(GenreEnum::fromId).collect(Collectors.toList());
-//    }
-//
-//    private List<PlatformEnum> getPlatformsById(List<Integer> platformsIds) {
-//        return platformsIds.stream().map(PlatformEnum::fromId).collect(Collectors.toList());
-//    }
-
     public List<Game> findAllGamesDropdown() {
         return this.gameRepository.findAll();
     }
 
-    public Game findGameById(Integer id) {
-        Optional<Game> game = this.gameRepository.findById(id);
-        return game.orElse(null);
+    public GameDTO findGameById(Integer id) {
+
+        if(this.gameRepository.findById(id).isPresent()){
+            Game game = this.gameRepository.findById(id).get();
+            GameDTO gameDTO = gameMapper.toDTO(game);
+            gameDTO.setGenreNames(game.getGenres().stream().map(GenreEnum::getNameById).collect(Collectors.toList()));
+            gameDTO.setPlatformNames(
+                    game.getPlatforms().stream().map(PlatformEnum::getNameById).collect(Collectors.toList()));
+            return gameDTO;
+        }
+        return null;
     }
 
     public List<GameDTO> findAllGames() {
         List<Game> savedGames = this.gameRepository.findAll();
-        return gameMapper.gamesListToDTO(savedGames);
+        List<GameDTO> gameDTOList = gameMapper.gamesListToDTO(savedGames);
+        List<String> genreNames = new ArrayList<>();
+        List<String> platformsNames = new ArrayList<>();
+
+        for (GameDTO gameDTO : gameDTOList) {
+            for (Integer genreId : gameDTO.getGenres()) {
+                String genreName = GenreEnum.getNameById(genreId);
+                if (genreName != null) {
+                    genreNames.add(genreName);
+                }
+                gameDTO.setGenreNames(genreNames);
+            }
+            for (Integer platformId : gameDTO.getPlatforms()) {
+                String platformName = PlatformEnum.getNameById(platformId);
+                if (platformName != null) {
+                    platformsNames.add(platformName);
+                }
+                gameDTO.setPlatformNames(platformsNames);
+            }
+        }
+        return gameDTOList;
     }
 
-    public Game updateGame(Integer id, Game game) {
-        Game obj = findGameById(id);
+    public GameDTO updateGame(Integer id, GameDTO game) {
+        GameDTO obj = findGameById(id);
         obj.setName(game.getName());
         obj.setDescription(game.getDescription());
         obj.setPlatforms(game.getPlatforms());
@@ -150,7 +169,8 @@ public class GameService {
         obj.setDeveloper(game.getDeveloper());
         obj.setPublisher(game.getPublisher());
         obj.setImageUrl(game.getImageUrl());
-        return this.gameRepository.save(game);
+        this.gameRepository.save(gameMapper.toEntity(obj));
+        return obj;
     }
 
     public void deleteGame(Integer id) {

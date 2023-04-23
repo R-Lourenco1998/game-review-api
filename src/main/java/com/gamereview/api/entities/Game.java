@@ -28,6 +28,7 @@ public class Game implements Serializable {
 
     @Lob
     private String description;
+
     @ElementCollection
     private List<Integer> genres;
     private LocalDate releaseDate;
