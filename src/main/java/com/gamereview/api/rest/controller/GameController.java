@@ -1,6 +1,5 @@
 package com.gamereview.api.rest.controller;
 
-import com.gamereview.api.entities.Game;
 import com.gamereview.api.entities.dto.GameDTO;
 import com.gamereview.api.entities.dto.GameDropdownDTO;
 import com.gamereview.api.entities.dto.GenreDTO;
@@ -13,6 +12,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -56,24 +57,24 @@ public class GameController {
 
     @PostMapping("/image/list/{id}")
     @Operation(tags = {
-            "Game" }, summary = "Create game with image to list of games", description = "image of the game to display on game list")
+            "Game"}, summary = "Create game with image to list of games", description = "image of the game to display on game list")
     public ResponseEntity uploadImageList(@PathVariable Integer id,
-            @RequestParam("imageList") MultipartFile multipartFile) {
+                                          @RequestParam("imageList") MultipartFile multipartFile) {
         gameService.uploadImageList(id, multipartFile);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/image/cover/{id}")
     @Operation(tags = {
-            "Game" }, summary = "Create game with imagem cover", description = "image cover of the game to display on game page")
+            "Game"}, summary = "Create game with imagem cover", description = "image cover of the game to display on game page")
     public ResponseEntity uploadImageCover(@PathVariable Integer id,
-            @RequestParam("imageCover") MultipartFile multipartFile) {
+                                           @RequestParam("imageCover") MultipartFile multipartFile) {
         gameService.uploadImageCover(id, multipartFile);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping
-    @Operation(tags = { "Game" }, summary = "Create game", description = "Create game")
+    @Operation(tags = {"Game"}, summary = "Create game", description = "Create game")
     @ResponseStatus(code = HttpStatus.CREATED)
     public ResponseEntity<GameDTO> createGame(@RequestBody GameDTO dto) {
         GameDTO gameDTO = this.gameService.createGame(dto);
@@ -87,16 +88,15 @@ public class GameController {
     }
 
     @GetMapping
-    @Operation(tags = { "Game" }, summary = "Find all games", description = "Find all games")
-    public ResponseEntity<List<GameDTO>> findAll() {
-
-        List<GameDTO> gameDTOList = this.gameService.findAllGames();
-
-        return ResponseEntity.ok(gameDTOList);
+    @Operation(tags = {"Game"}, summary = "Find all games", description = "Find all games")
+    public ResponseEntity<Page<GameDTO>> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        Page<GameDTO> gameDTOPage = this.gameService.findAllGames(PageRequest.of(page, size));
+        return ResponseEntity.ok(gameDTOPage);
     }
 
+
     @GetMapping("/{id}")
-    @Operation(tags = { "Game" }, summary = "Find game by id", description = "Find game by id")
+    @Operation(tags = {"Game"}, summary = "Find game by id", description = "Find game by id")
     public ResponseEntity<GameDTO> findGameById(@PathVariable Integer id) {
         GameDTO gameDTO = gameService.findGameById(id);
         return ResponseEntity.ok().body(gameDTO);
@@ -104,7 +104,7 @@ public class GameController {
 
     @GetMapping("/list")
     @Operation(tags = {
-            "Game" }, summary = "Find all games for the dropdown", description = "Find all games for the dropdown")
+            "Game"}, summary = "Find all games for the dropdown", description = "Find all games for the dropdown")
     public List<GameDropdownDTO> findAllGamesDropdown() {
 
         return gameService.findAllGamesDropdown().stream().map(game -> modelMapper.map(game, GameDropdownDTO.class))
@@ -112,7 +112,7 @@ public class GameController {
     }
 
     @PutMapping("/{id}")
-    @Operation(tags = { "Game" }, summary = "Update game", description = "Update game by id and body")
+    @Operation(tags = {"Game"}, summary = "Update game", description = "Update game by id and body")
     public ResponseEntity<GameDTO> updateGame(@PathVariable Integer id, @RequestBody GameDTO game) {
         if (gameService.findGameById(id) == null) {
             return ResponseEntity.notFound().build();
@@ -123,7 +123,7 @@ public class GameController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(tags = { "Game" }, summary = "Delete game", description = "Delete game by id")
+    @Operation(tags = {"Game"}, summary = "Delete game", description = "Delete game by id")
     public ResponseEntity<Void> deleteGame(@PathVariable Integer id) {
         if (gameService.findGameById(id) == null) {
             return ResponseEntity.notFound().build();

@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -134,11 +135,11 @@ public class GameService {
         return null; //TODO: Criar uma exceção para quando o jogo não for encontrado
     }
 
-    public List<GameDTO> findAllGames() {
-        List<Game> savedGames = this.gameRepository.findAll();
-        List<GameDTO> gameDTOList = gameMapper.gamesListToDTO(savedGames);
+    public Page<GameDTO> findAllGames(Pageable pageable) {
+        Page<Game> savedGames = this.gameRepository.findAll(pageable);
+        Page<GameDTO> gameDTOPage = savedGames.map(gameMapper::toDTO);
 
-        for (GameDTO gameDTO : gameDTOList) {
+        gameDTOPage.forEach(gameDTO -> {
             List<String> genreNames = new ArrayList<>();
             for (Integer genreId : gameDTO.getGenres()) {
                 String genreName = GenreEnum.getNameById(genreId);
@@ -156,9 +157,10 @@ public class GameService {
                 }
             }
             gameDTO.setPlatformNames(platformNames);
-        }
-        return gameDTOList;
+        });
+        return gameDTOPage;
     }
+
 
     public GameDTO updateGame(Integer id, GameDTO game) {
         GameDTO obj = findGameById(id);
