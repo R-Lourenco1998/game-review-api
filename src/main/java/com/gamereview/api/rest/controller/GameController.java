@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -33,11 +32,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GameController {
 
-    @Autowired
-    ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
     private final GameService gameService;
 
     @GetMapping("/platforms")
+    @Operation(tags = {
+            "Game"}, summary = "list platforms", description = "platforms options to display on game form")
     public ResponseEntity<List<PlatformDTO>> getPlatforms() {
         List<PlatformDTO> platforms = new ArrayList<>();
         for (PlatformEnum platform : PlatformEnum.values()) {
@@ -47,6 +47,8 @@ public class GameController {
     }
 
     @GetMapping("/genres")
+    @Operation(tags = {
+            "Game"}, summary = "list genres", description = "genres options to display on game form")
     public ResponseEntity<List<GenreDTO>> getGenres() {
         List<GenreDTO> genres = new ArrayList<>();
         for (GenreEnum genre : GenreEnum.values()) {
@@ -75,7 +77,6 @@ public class GameController {
 
     @PostMapping
     @Operation(tags = {"Game"}, summary = "Create game", description = "Create game")
-    @ResponseStatus(code = HttpStatus.CREATED)
     public ResponseEntity<GameDTO> createGame(@RequestBody GameDTO dto) {
         GameDTO gameDTO = this.gameService.createGame(dto);
         return new ResponseEntity<>(gameDTO, HttpStatus.CREATED);
@@ -91,7 +92,7 @@ public class GameController {
     @Operation(tags = {"Game"}, summary = "Find all games", description = "Find all games")
     public ResponseEntity<Page<GameDTO>> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Page<GameDTO> gameDTOPage = this.gameService.findAllGames(PageRequest.of(page, size));
-        return ResponseEntity.ok(gameDTOPage);
+        return new ResponseEntity<>(gameDTOPage, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
