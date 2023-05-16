@@ -1,16 +1,14 @@
 package com.gamereview.api.entities.dto;
 
 import lombok.Data;
-import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
 
 @Data
 public class GameDTO {
 
-    private Integer id;
+    private Long id;
     private String name;
-    @Lob
     private String description;
     private List<Integer> genres;
     private List<String> genreNames;

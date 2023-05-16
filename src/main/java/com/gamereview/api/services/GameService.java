@@ -6,13 +6,13 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.gamereview.api.entities.Game;
+import com.gamereview.api.entities.User;
 import com.gamereview.api.entities.dto.GameDTO;
 import com.gamereview.api.enumaration.GenreEnum;
 import com.gamereview.api.enumaration.PlatformEnum;
 import com.gamereview.api.exceptions.FileExtensionInvalidException;
 import com.gamereview.api.mapper.GameMapper;
 import com.gamereview.api.repositories.GameRepository;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,11 +25,12 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,7 +38,6 @@ import java.util.stream.Collectors;
 public class GameService {
 
     private final S3Client s3Client;
-
     private final GameRepository gameRepository;
     private final GameMapper gameMapper;
 
@@ -48,7 +48,7 @@ public class GameService {
     private String accessKey;
     @Value("${aws.s3.secretKey}")
     private String secretKey;
-    public void uploadImageList(Integer id, MultipartFile multipartFile){
+    public void uploadImageList(Long id, MultipartFile multipartFile){
         try {
 
             GameDTO gameDTO = findGameById(id);
@@ -72,7 +72,7 @@ public class GameService {
             e.printStackTrace();
         }
     }
-    public void uploadImageCover(Integer id, MultipartFile multipartFile){
+    public void uploadImageCover(Long id, MultipartFile multipartFile){
         try {
 
             GameDTO gameDTO = findGameById(id);
@@ -97,7 +97,7 @@ public class GameService {
         }
     }
 
-    public ResponseInputStream<GetObjectResponse> getImage(Integer gameID){
+    public ResponseInputStream<GetObjectResponse> getImage(Long gameID){
         GameDTO gameDTO = findGameById(gameID);
         try{
             return s3Client.getObject(GetObjectRequest
@@ -122,7 +122,7 @@ public class GameService {
         return this.gameRepository.findAll();
     }
 
-    public GameDTO findGameById(Integer id) {
+    public GameDTO findGameById(Long id) {
 
         if(this.gameRepository.findById(id).isPresent()){
             Game game = this.gameRepository.findById(id).get();
@@ -162,7 +162,7 @@ public class GameService {
     }
 
 
-    public GameDTO updateGame(Integer id, GameDTO game) {
+    public GameDTO updateGame(Long id, GameDTO game) {
         GameDTO obj = findGameById(id);
         obj.setName(game.getName());
         obj.setDescription(game.getDescription());
@@ -176,7 +176,14 @@ public class GameService {
         return obj;
     }
 
-    public void deleteGame(Integer id) {
+    public void deleteGame(Long id) {
         this.gameRepository.deleteById(id);
     }
+
+    @Transactional
+    public void addUserToGame(User user, Game game) {
+        game.getUsers().add(user);
+        gameRepository.save(game);
+    }
+
 }

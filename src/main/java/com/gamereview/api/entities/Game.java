@@ -4,10 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -22,15 +22,16 @@ public class Game implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     private String name;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ElementCollection
     private List<Integer> genres;
+
     private LocalDate releaseDate;
 
     private String developer;
@@ -45,4 +46,8 @@ public class Game implements Serializable {
 
     @Column(name = "image_cover_url", length = 256)
     private String imageCoverUrl;
+
+    @ManyToMany(mappedBy = "games",fetch = FetchType.LAZY)
+    private List<User> users = new ArrayList<>();
+
 }
