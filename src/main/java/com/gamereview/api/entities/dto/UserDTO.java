@@ -1,5 +1,6 @@
 package com.gamereview.api.entities.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gamereview.api.enumaration.PermissionEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,12 +15,13 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Component
 public class UserDTO {
 
     private Long id;
     private String name;
     private String email;
+    @JsonIgnore
+    private String password;
     private PermissionEnum permission;
     private List<GameDTO> games = new ArrayList<>();
 }

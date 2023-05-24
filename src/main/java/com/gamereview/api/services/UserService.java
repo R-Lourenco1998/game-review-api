@@ -1,6 +1,5 @@
 package com.gamereview.api.services;
 
-import com.amazonaws.services.dlm.model.ResourceNotFoundException;
 import com.gamereview.api.entities.Game;
 import com.gamereview.api.entities.User;
 import com.gamereview.api.entities.dto.UserDTO;
@@ -61,14 +60,14 @@ public class UserService {
 
     @Transactional
     public void addGameToUser(Long userId, Long gameId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("Usuário não encontrado com o id: " + userId));
         Game game = gameMapper.toEntity(gameService.findGameById(gameId));
         if(game != null){
             user.getGames().add(game);
             userRepository.save(user);
             gameService.addUserToGame(user, game);
         }else {
-            throw new ResourceNotFoundException("Game not found with id " + gameId);
+            throw new NoSuchElementException("Game not found with id " + gameId);
         }
     }
 }

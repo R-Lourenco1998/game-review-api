@@ -10,7 +10,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
 @EnableAutoConfiguration
-//@ComponentScan("com.gamereview.api.config")
 public class S3Config {
 
     @Value("${aws.s3.accessKey}")
