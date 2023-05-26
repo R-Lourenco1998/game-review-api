@@ -3,19 +3,24 @@ package com.gamereview.api.services;
 import com.gamereview.api.entities.Game;
 import com.gamereview.api.entities.User;
 import com.gamereview.api.entities.dto.UserDTO;
+import com.gamereview.api.exceptions.PasswordInvalidException;
 import com.gamereview.api.mapper.GameMapper;
 import com.gamereview.api.mapper.UserMapper;
 import com.gamereview.api.repositories.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.NoSuchElementException;
 
 @Service
 @AllArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
@@ -25,9 +30,26 @@ public class UserService {
 
     private final UserMapper userMapper;
 
+    private final PasswordEncoder encoder;
+
+    @Transactional
     public void createUser(User user){
         userRepository.save(user);
     }
+
+    public void authenticate(User user) {
+        UserDetails userFound = loadUserByUsername(user.getUsername());
+
+        if (userFound == null) {
+            throw new UsernameNotFoundException("Usuário não encontrado");
+        }
+        boolean passwordMatches = encoder.matches(user.getPassword(), userFound.getPassword());
+
+        if (!passwordMatches) {
+            throw new PasswordInvalidException();
+        }
+    }
+
 
     @Transactional
     public Page<UserDTO> findAllUser(Pageable pageable){
@@ -49,6 +71,7 @@ public class UserService {
     public UserDTO updateUser(Long id, UserDTO userDTO){
         UserDTO obj = findUserById(id);
         obj.setName(userDTO.getName());
+        obj.setUsername(userDTO.getUsername());
         obj.setEmail(userDTO.getEmail());
         obj.setPermission(userDTO.getPermission());
         obj.setGames(userDTO.getGames());
@@ -69,5 +92,17 @@ public class UserService {
         }else {
             throw new NoSuchElementException("Game not found with id " + gameId);
         }
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+     User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+     return org.springframework.security.core.userdetails.User
+             .builder()
+             .username(user.getUsername())
+             .password(user.getPassword())
+             .roles(user.getPermission().toString())
+             .build();
     }
 }

@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +18,7 @@ public class UserDTO {
 
     private Long id;
     private String name;
+    private String username;
     private String email;
     @JsonIgnore
     private String password;

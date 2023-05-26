@@ -14,6 +14,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Page<User> findAll(Pageable pageable);
 
+    Optional<User> findByUsername(String username);
+
     @Query("SELECT u FROM User u JOIN FETCH u.games WHERE u.id = :id")
     Optional<User> findUserWithGamesById(Long id);
 
