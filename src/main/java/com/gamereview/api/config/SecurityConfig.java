@@ -14,7 +14,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.util.Arrays;
 
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -43,20 +48,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .passwordEncoder(passwordEncoder());
     }
 
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .csrf().disable()
+        final String ADMIN = "ADMIN";
+        final String USER = "USER";
+        http.cors().and().csrf().disable()
                 .authorizeRequests()
+                .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .antMatchers("/api/game/**")
-                .hasAnyRole("USER", "ADMIN")
+                .hasAnyRole(USER, ADMIN)
                 .antMatchers(HttpMethod.POST, "/api/game/")
-                .hasRole("ADMIN")
+                .hasRole(ADMIN)
                 .antMatchers(HttpMethod.POST, "/api/user").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/user/auth").permitAll()
                 .antMatchers("/api/user/**")
-                .hasAnyRole("USER","ADMIN")
+                .hasAnyRole(USER,ADMIN)
                 .anyRequest()
                 .authenticated()
                 .and()

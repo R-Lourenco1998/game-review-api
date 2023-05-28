@@ -2,7 +2,6 @@ package com.gamereview.api.rest.controller;
 
 import com.gamereview.api.entities.User;
 import com.gamereview.api.entities.dto.UserDTO;
-import com.gamereview.api.exceptions.PasswordInvalidException;
 import com.gamereview.api.rest.controller.dto.CredentialsDTO;
 import com.gamereview.api.rest.controller.dto.TokenDTO;
 import com.gamereview.api.security.jwt.JwtService;
@@ -13,10 +12,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+
 import javax.validation.Valid;
 
 @RestController
@@ -55,24 +53,18 @@ public class UserController {
         user.setPassword(encryptedPassword);
         userService.createUser(user);
     }
-
+    
     @PostMapping("/auth")
     @Operation(tags = {"User"}, summary = "Authenticate user", description = "Authenticate user")
     public TokenDTO authenticate(@RequestBody CredentialsDTO credentialsDTO) {
-        try {
-            User user = User.builder()
-                    .username(credentialsDTO.getUsername())
-                    .password(credentialsDTO.getPassword()).build();
 
-            // Autenticar o usuário e gerar o token
-            userService.authenticate(user);
-            String token = jwtService.generateToken(user);
+        User user = User.builder()
+                .username(credentialsDTO.getUsername())
+                .password(credentialsDTO.getPassword()).build();
+        userService.authenticate(user);
+        String token = jwtService.generateToken(user);
 
-            // Retornar o token
-            return new TokenDTO(user.getUsername(), token);
-        } catch (UsernameNotFoundException | PasswordInvalidException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        }
+        return new TokenDTO(user.getUsername(), token);
     }
 
     @PutMapping("/{id}")
