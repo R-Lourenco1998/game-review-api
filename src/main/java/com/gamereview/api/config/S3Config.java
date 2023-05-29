@@ -2,7 +2,6 @@ package com.gamereview.api.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -11,7 +10,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
 @EnableAutoConfiguration
-@ComponentScan
 public class S3Config {
 
     @Value("${aws.s3.accessKey}")

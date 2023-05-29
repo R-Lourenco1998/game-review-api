@@ -1,10 +1,9 @@
 package com.gamereview.api.mapper;
-
 import com.gamereview.api.entities.User;
 import com.gamereview.api.entities.dto.UserDTO;
 import org.mapstruct.Mapper;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface UserMapper {
 
     User toEntity(UserDTO userDTO);

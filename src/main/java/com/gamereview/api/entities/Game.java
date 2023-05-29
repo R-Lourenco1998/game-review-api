@@ -1,15 +1,13 @@
 package com.gamereview.api.entities;
 
-import com.gamereview.api.enumaration.GenreEnum;
-import com.gamereview.api.enumaration.PlatformEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -18,28 +16,28 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "tb_game")
-public class Game implements Serializable{
+public class Game implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     private String name;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ElementCollection
     private List<Integer> genres;
+
     private LocalDate releaseDate;
 
     private String developer;
 
     @ElementCollection
-    @Enumerated(EnumType.STRING)
-    private List<PlatformEnum> platforms;
+    private List<Integer> platforms;
 
     private String publisher;
 
@@ -48,4 +46,8 @@ public class Game implements Serializable{
 
     @Column(name = "image_cover_url", length = 256)
     private String imageCoverUrl;
+
+    @ManyToMany(mappedBy = "games",fetch = FetchType.LAZY)
+    private List<User> users = new ArrayList<>();
+
 }

@@ -6,17 +6,18 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.gamereview.api.entities.Game;
+import com.gamereview.api.entities.User;
 import com.gamereview.api.entities.dto.GameDTO;
 import com.gamereview.api.enumaration.GenreEnum;
 import com.gamereview.api.enumaration.PlatformEnum;
 import com.gamereview.api.exceptions.FileExtensionInvalidException;
 import com.gamereview.api.mapper.GameMapper;
 import com.gamereview.api.repositories.GameRepository;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -24,10 +25,12 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,7 +38,6 @@ import java.util.stream.Collectors;
 public class GameService {
 
     private final S3Client s3Client;
-
     private final GameRepository gameRepository;
     private final GameMapper gameMapper;
 
@@ -46,10 +48,10 @@ public class GameService {
     private String accessKey;
     @Value("${aws.s3.secretKey}")
     private String secretKey;
-    public void uploadImageList(Integer id, MultipartFile multipartFile){
+    public void uploadImageList(Long id, MultipartFile multipartFile){
         try {
 
-            Game game = findGameById(id);
+            GameDTO gameDTO = findGameById(id);
             String fileName = multipartFile.getOriginalFilename();
             String extension = FilenameUtils.getExtension(fileName);
             assert extension != null;
@@ -60,20 +62,20 @@ public class GameService {
                     .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
                     .withRegion(Regions.SA_EAST_1)
                     .build();
-                fileName = "games/" + game.getName() + ".png";
+                fileName = "games/" + gameDTO.getName() + ".png";
 
             s3client.putObject(bucketName, fileName, multipartFile.getInputStream(), null);
             URL url = s3client.getUrl(bucketName, fileName);
-                game.setImageUrl(url.toString());
-                gameRepository.save(game);
+            gameDTO.setImageUrl(url.toString());
+                gameRepository.save(gameMapper.toEntity(gameDTO));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    public void uploadImageCover(Integer id, MultipartFile multipartFile){
+    public void uploadImageCover(Long id, MultipartFile multipartFile){
         try {
 
-            Game game = findGameById(id);
+            GameDTO gameDTO = findGameById(id);
             String fileName = multipartFile.getOriginalFilename();
             String extension = FilenameUtils.getExtension(fileName);
             assert extension != null;
@@ -84,24 +86,24 @@ public class GameService {
                     .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
                     .withRegion(Regions.SA_EAST_1)
                     .build();
-                fileName = "cover/" + game.getName() + ".jpg";
+                fileName = "cover/" + gameDTO.getName() + ".jpg";
 
             s3client.putObject(bucketName, fileName, multipartFile.getInputStream(), null);
             URL url = s3client.getUrl(bucketName, fileName);
-                game.setImageCoverUrl(url.toString());
-                gameRepository.save(game);
+            gameDTO.setImageCoverUrl(url.toString());
+                gameRepository.save(gameMapper.toEntity(gameDTO));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public ResponseInputStream<GetObjectResponse> getImage(Integer gameID){
-        Game game = findGameById(gameID);
+    public ResponseInputStream<GetObjectResponse> getImage(Long gameID){
+        GameDTO gameDTO = findGameById(gameID);
         try{
             return s3Client.getObject(GetObjectRequest
                     .builder()
                     .bucket(bucketName)
-                    .key("games/"+game.getName())
+                    .key("games/"+gameDTO.getName())
                     .build());
         }catch (NoSuchKeyException e){
             return s3Client.getObject(GetObjectRequest
@@ -116,32 +118,52 @@ public class GameService {
         Game save = gameMapper.toEntity(gameDTO);
         return gameMapper.toDTO(gameRepository.save(save));
     }
-
-
-//    private List<GenreEnum> getGenreById(List<Integer> genreIds) {
-//        return genreIds.stream().map(GenreEnum::fromId).collect(Collectors.toList());
-//    }
-//
-//    private List<PlatformEnum> getPlatformsById(List<Integer> platformsIds) {
-//        return platformsIds.stream().map(PlatformEnum::fromId).collect(Collectors.toList());
-//    }
-
     public List<Game> findAllGamesDropdown() {
         return this.gameRepository.findAll();
     }
 
-    public Game findGameById(Integer id) {
-        Optional<Game> game = this.gameRepository.findById(id);
-        return game.orElse(null);
+    public GameDTO findGameById(Long id) {
+
+        if(this.gameRepository.findById(id).isPresent()){
+            Game game = this.gameRepository.findById(id).get();
+            GameDTO gameDTO = gameMapper.toDTO(game);
+            gameDTO.setGenreNames(game.getGenres().stream().map(GenreEnum::getNameById).collect(Collectors.toList()));
+            gameDTO.setPlatformNames(
+                    game.getPlatforms().stream().map(PlatformEnum::getNameById).collect(Collectors.toList()));
+            return gameDTO;
+        }
+        return null; //TODO: Criar uma exceção para quando o jogo não for encontrado
     }
 
-    public List<GameDTO> findAllGames() {
-        List<Game> savedGames = this.gameRepository.findAll();
-        return gameMapper.gamesListToDTO(savedGames);
+    public Page<GameDTO> findAllGames(Pageable pageable) {
+        Page<Game> savedGames = this.gameRepository.findAll(pageable);
+        Page<GameDTO> gameDTOPage = savedGames.map(gameMapper::toDTO);
+
+        gameDTOPage.forEach(gameDTO -> {
+            List<String> genreNames = new ArrayList<>();
+            for (Integer genreId : gameDTO.getGenres()) {
+                String genreName = GenreEnum.getNameById(genreId);
+                if (genreName != null) {
+                    genreNames.add(genreName);
+                }
+            }
+            gameDTO.setGenreNames(genreNames);
+
+            List<String> platformNames = new ArrayList<>();
+            for (Integer platformId : gameDTO.getPlatforms()) {
+                String platformName = PlatformEnum.getNameById(platformId);
+                if (platformName != null) {
+                    platformNames.add(platformName);
+                }
+            }
+            gameDTO.setPlatformNames(platformNames);
+        });
+        return gameDTOPage;
     }
 
-    public Game updateGame(Integer id, Game game) {
-        Game obj = findGameById(id);
+
+    public GameDTO updateGame(Long id, GameDTO game) {
+        GameDTO obj = findGameById(id);
         obj.setName(game.getName());
         obj.setDescription(game.getDescription());
         obj.setPlatforms(game.getPlatforms());
@@ -150,10 +172,18 @@ public class GameService {
         obj.setDeveloper(game.getDeveloper());
         obj.setPublisher(game.getPublisher());
         obj.setImageUrl(game.getImageUrl());
-        return this.gameRepository.save(game);
+        this.gameRepository.save(gameMapper.toEntity(obj));
+        return obj;
     }
 
-    public void deleteGame(Integer id) {
+    public void deleteGame(Long id) {
         this.gameRepository.deleteById(id);
     }
+
+    @Transactional
+    public void addUserToGame(User user, Game game) {
+        game.getUsers().add(user);
+        gameRepository.save(game);
+    }
+
 }
