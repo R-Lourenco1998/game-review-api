@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/game")
-@CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
 public class GameController {
 

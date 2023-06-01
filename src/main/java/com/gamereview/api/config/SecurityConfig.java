@@ -1,4 +1,5 @@
 package com.gamereview.api.config;
+
 import com.gamereview.api.security.jwt.JwtAuthFilter;
 import com.gamereview.api.security.jwt.JwtService;
 import com.gamereview.api.services.UserService;
@@ -14,12 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.util.Arrays;
 
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -52,7 +48,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         final String ADMIN = "ADMIN";
         final String USER = "USER";
-        http.cors().and().csrf().disable()
+        http.csrf().disable()
+                .authorizeRequests()
+                .and()
+                .cors()
+                .and()
                 .authorizeRequests()
                 .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .antMatchers("/api/game/**")
@@ -61,8 +61,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .hasRole(ADMIN)
                 .antMatchers(HttpMethod.POST, "/api/user").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/user/auth").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/user/username/{username}").permitAll()
                 .antMatchers("/api/user/**")
-                .hasAnyRole(USER,ADMIN)
+                .hasAnyRole(USER, ADMIN)
                 .anyRequest()
                 .authenticated()
                 .and()

@@ -19,14 +19,12 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/user")
-@CrossOrigin(origins = "http://localhost:4200")
 @AllArgsConstructor
 public class UserController {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-
 
     @GetMapping
     @Operation(tags = {"User"}, summary = "Find all users", description = "Find all users")
@@ -45,6 +43,16 @@ public class UserController {
         return ResponseEntity.ok().body(userDTO);
     }
 
+    @GetMapping("/username/{username}")
+    @Operation(tags = {"User"}, summary = "Find user by username", description = "Find user by username")
+    public ResponseEntity<UserDTO> findByUsername(@PathVariable String username) {
+        UserDTO userDTO = userService.findUserByUsername(username);
+        if (userDTO == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok().body(userDTO);
+    }
+
     @PostMapping()
     @Operation(tags = {"User"}, summary = "Create user", description = "Create user")
     @ResponseStatus(code = HttpStatus.CREATED)
@@ -53,17 +61,15 @@ public class UserController {
         user.setPassword(encryptedPassword);
         userService.createUser(user);
     }
-    
+
     @PostMapping("/auth")
     @Operation(tags = {"User"}, summary = "Authenticate user", description = "Authenticate user")
     public TokenDTO authenticate(@RequestBody CredentialsDTO credentialsDTO) {
-
         User user = User.builder()
                 .username(credentialsDTO.getUsername())
                 .password(credentialsDTO.getPassword()).build();
         userService.authenticate(user);
         String token = jwtService.generateToken(user);
-
         return new TokenDTO(user.getUsername(), token);
     }
 

@@ -9,13 +9,13 @@ import com.gamereview.api.mapper.GameMapper;
 import com.gamereview.api.mapper.UserMapper;
 import com.gamereview.api.repositories.UserRepository;
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 import java.util.NoSuchElementException;
 
@@ -32,6 +32,7 @@ public class UserService implements UserDetailsService {
     private final UserMapper userMapper;
 
     private final PasswordEncoder encoder;
+    private final ModelMapper modelMapper;
 
     @Transactional
     public void createUser(User user) {
@@ -42,13 +43,13 @@ public class UserService implements UserDetailsService {
         UserDetails userFound = loadUserByUsername(user.getUsername());
 
         if (userFound == null) {
-            throw new UserNotFoundException("Usuário não encontrado");
+            throw new UserNotFoundException("Usuário" + user.getUsername() + "não encontrado, tente novamente!");
         }
 
         boolean passwordMatches = encoder.matches(user.getPassword(), userFound.getPassword());
 
         if (!passwordMatches) {
-            throw new InvalidPasswordException("Senha inválida");
+            throw new InvalidPasswordException("Senha inválida, tente novamente!");
         }
     }
 
@@ -57,7 +58,7 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByUsername(username);
 
         if (user == null) {
-            throw new UserNotFoundException("Usuário não encontrado");
+            throw new UserNotFoundException("Usuário " + username + " não encontrado, tente novamente!");
         }
         return org.springframework.security.core.userdetails.User
                 .builder()
@@ -65,6 +66,10 @@ public class UserService implements UserDetailsService {
                 .password(user.getPassword())
                 .roles(user.getPermission().toString())
                 .build();
+    }
+
+    public UserDTO findUserByUsername(String username) {
+        return modelMapper.map(userRepository.findByUsername(username), UserDTO.class);
     }
 
     @Transactional
@@ -99,7 +104,8 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void addGameToUser(Long userId, Long gameId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("Usuário não encontrado com o id: " + userId));
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new NoSuchElementException("Usuário não encontrado com o id: " + userId));
         Game game = gameMapper.toEntity(gameService.findGameById(gameId));
         if (game != null) {
             user.getGames().add(game);
