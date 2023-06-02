@@ -24,13 +24,9 @@ import java.util.NoSuchElementException;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
-
     private final GameService gameService;
-
     private final GameMapper gameMapper;
-
     private final UserMapper userMapper;
-
     private final PasswordEncoder encoder;
     private final ModelMapper modelMapper;
 
@@ -112,7 +108,7 @@ public class UserService implements UserDetailsService {
             userRepository.save(user);
             gameService.addUserToGame(user, game);
         } else {
-            throw new NoSuchElementException("Game not found with id " + gameId);
+            throw new NoSuchElementException("Jogo não encontrado com o id " + gameId);
         }
     }
 }
