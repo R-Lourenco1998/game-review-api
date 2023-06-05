@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -85,9 +86,12 @@ public class UserService implements UserDetailsService {
 
     //Depois adicionarei exceções personalizadas aqui
     public UserDTO findUserById(Long id) {
-        return userRepository.findById(id)
-                .map(userMapper::toDTO)
-                .orElseThrow(() -> new ObjectNotFoundException("Usuário não encontrado"));
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            return modelMapper.map(user, UserDTO.class);
+        } else {
+            throw new ObjectNotFoundException("Usuário não encontrado");
+        }
     }
 
     public UserDTO updateUser(Long id, UserDTO userDTO) {
