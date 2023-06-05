@@ -47,10 +47,7 @@ public class UserController {
     @Operation(tags = {"User"}, summary = "Find user by username", description = "Find user by username")
     public ResponseEntity<UserDTO> findByUsername(@PathVariable String username) {
         UserDTO userDTO = userService.findUserByUsername(username);
-        if (userDTO == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok().body(userDTO);
+        return new ResponseEntity<>(userDTO, HttpStatus.OK);
     }
 
     @PostMapping()

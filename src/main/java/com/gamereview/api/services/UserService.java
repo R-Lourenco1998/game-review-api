@@ -4,7 +4,7 @@ import com.gamereview.api.entities.Game;
 import com.gamereview.api.entities.User;
 import com.gamereview.api.entities.dto.UserDTO;
 import com.gamereview.api.exceptions.InvalidPasswordException;
-import com.gamereview.api.exceptions.UserNotFoundException;
+import com.gamereview.api.exceptions.ObjectNotFoundException;
 import com.gamereview.api.mapper.GameMapper;
 import com.gamereview.api.mapper.UserMapper;
 import com.gamereview.api.repositories.UserRepository;
@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import javax.transaction.Transactional;
 import java.util.NoSuchElementException;
 
@@ -39,7 +40,7 @@ public class UserService implements UserDetailsService {
         UserDetails userFound = loadUserByUsername(user.getUsername());
 
         if (userFound == null) {
-            throw new UserNotFoundException("Usuário" + user.getUsername() + "não encontrado, tente novamente!");
+            throw new ObjectNotFoundException("Usuário" + user.getUsername() + "não encontrado, tente novamente!");
         }
 
         boolean passwordMatches = encoder.matches(user.getPassword(), userFound.getPassword());
@@ -50,11 +51,11 @@ public class UserService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UserNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws ObjectNotFoundException {
         User user = userRepository.findByUsername(username);
 
         if (user == null) {
-            throw new UserNotFoundException("Usuário " + username + " não encontrado, tente novamente!");
+            throw new ObjectNotFoundException("Usuário " + username + " não encontrado, tente novamente!");
         }
         return org.springframework.security.core.userdetails.User
                 .builder()
@@ -65,7 +66,12 @@ public class UserService implements UserDetailsService {
     }
 
     public UserDTO findUserByUsername(String username) {
-        return modelMapper.map(userRepository.findByUsername(username), UserDTO.class);
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            return modelMapper.map(user, UserDTO.class);
+        } else {
+            throw new ObjectNotFoundException("Usuário não encontrado");
+        }
     }
 
     @Transactional
@@ -81,8 +87,7 @@ public class UserService implements UserDetailsService {
     public UserDTO findUserById(Long id) {
         return userRepository.findById(id)
                 .map(userMapper::toDTO)
-                .orElseThrow(() -> new NoSuchElementException("Usuário não localizado - id: " + id));
-
+                .orElseThrow(() -> new ObjectNotFoundException("Usuário não encontrado"));
     }
 
     public UserDTO updateUser(Long id, UserDTO userDTO) {
