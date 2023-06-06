@@ -88,7 +88,7 @@ public class UserService implements UserDetailsService {
     public UserDTO findUserById(Long id) {
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
-            return modelMapper.map(user, UserDTO.class);
+            return userMapper.toDTO(user.get());
         } else {
             throw new ObjectNotFoundException("Usuário não encontrado");
         }

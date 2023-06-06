@@ -7,28 +7,30 @@ import com.gamereview.api.entities.dto.UserDTO;
 import com.gamereview.api.enumaration.GenreEnum;
 import com.gamereview.api.enumaration.PermissionEnum;
 import com.gamereview.api.enumaration.PlatformEnum;
+import com.gamereview.api.exceptions.ObjectNotFoundException;
 import com.gamereview.api.mapper.GameMapper;
 import com.gamereview.api.mapper.UserMapper;
 import com.gamereview.api.repositories.UserRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
-import org.mockito.MockitoAnnotations;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @SpringBootTest
@@ -50,6 +52,8 @@ class UserServiceTest {
     private User user;
     private UserDTO userDTO;
 
+    private static final String OBJETO_NAO_ENCONTRADO = "Usuário não encontrado";
+
     @BeforeEach
     void setUp() {
         startUser();
@@ -68,11 +72,61 @@ class UserServiceTest {
     }
 
     @Test
-    void findUserByUsername() {
+    void whenFindUserByUsernameReturnsAnUserDTO() {
+
+        User user = this.user;
+        UserDTO expectedUserDTO = this.userDTO;
+        String username = user.getUsername();
+
+        // Mock do UserRepository
+        when(userRepository.findByUsername(username)).thenReturn(user);
+
+        // Mock do ModelMapper
+        when(modelMapper.map(user, UserDTO.class)).thenReturn(expectedUserDTO);
+
+        // Executa o método de teste
+        UserDTO result = userService.findUserByUsername(username);
+
+        // Verificações
+        assertEquals(expectedUserDTO, result);
+        verify(userRepository, times(1)).findByUsername(username);
+        verify(modelMapper, times(1)).map(user, UserDTO.class);
     }
 
     @Test
-    void findAllUser() {
+    void whenFindByUsernameReturnsObjectNotFoundException(){
+        String username = "teste";
+        when(userRepository.findByUsername(username)).thenReturn(null);
+        ObjectNotFoundException exception = assertThrows(ObjectNotFoundException.class, () -> userService.findUserByUsername(username));
+        assertEquals(OBJETO_NAO_ENCONTRADO, exception.getMessage());
+    }
+
+    @Test
+    void whenFindAllThenReturnsAnPageOfUsers() {
+        // Mock do Pageable
+        int pageNumber = 0;
+        int pageSize = 10;
+        Sort sort = Sort.by(Sort.Direction.ASC, "name"); // Exemplo de critério de ordenação
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+
+        // Mock dos objetos de retorno
+        List<User> userList = new ArrayList<>(); // Lista vazia, pois não afeta o teste de paginação
+        Page<User> userPage = new PageImpl<>(userList, pageable, 0); // Página vazia
+
+        List<UserDTO> userDtoList = new ArrayList<>(); // Lista vazia, pois não afeta o teste de mapeamento
+        Page<UserDTO> expectedPage = new PageImpl<>(userDtoList, pageable, 0); // Página vazia de UserDTOs
+
+        // Mock das chamadas do UserRepository e UserMapper
+        when(userRepository.findAll(pageable)).thenReturn(userPage);
+        when(userMapper.toDTO(any(User.class))).thenReturn(new UserDTO()); // Qualquer User retorna um UserDTO vazio
+
+        // Executa o método de teste
+        Page<UserDTO> result = userService.findAllUser(pageable);
+
+        // Verificações
+        assertEquals(expectedPage, result);
+        verify(userRepository, times(1)).findAll(pageable);
+        verify(userMapper, times(userList.size())).toDTO(any(User.class));
     }
 
     @Test
@@ -85,9 +139,23 @@ class UserServiceTest {
     }
 
     @Test
-    void testFindUserById() {
+    void whenFindByIdThenReturnsAnObjectNotFoundException() {
+        when(userRepository.findById(anyLong())).thenThrow(new ObjectNotFoundException(OBJETO_NAO_ENCONTRADO));
+
+        try{
+            userService.findUserById(user.getId());
+        } catch (ObjectNotFoundException e) {
+            assertEquals(ObjectNotFoundException.class, e.getClass());
+            assertEquals(OBJETO_NAO_ENCONTRADO, e.getMessage());
+        }
+    }
+
+    @Test //rever esse teste
+    void whenFindByUserByIdThenReturnsAnUserInstance() {
         // Mock do UserRepository
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user)); // Retorna o Optional com o usuário salvo no repositório
+
+        when(userService.findUserById(user.getId())).thenReturn(userDTO);
 
         // Mock do UserMapper
         when(userMapper.toDTO(user)).thenReturn(userDTO);
@@ -125,7 +193,7 @@ class UserServiceTest {
         }
 
         // Verifica se o método findById foi chamado uma vez com o argumento 1L
-        verify(userRepository, times(1)).findById(user.getId());
+        verify(userRepository, times(2)).findById(user.getId());
 
         // Verifica se o método toDTO foi chamado uma vez com o objeto user
         verify(userMapper, times(1)).toDTO(user);
